@@ -1,0 +1,10 @@
+[project]
+name = "kelompok-4-ets-bigdata"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "flask>=3.1.3",
+    "ipykernel>=7.2.0",
+    "kafka-python>=2.3.1",
+    "pyspark>=4.1.1",
+]
