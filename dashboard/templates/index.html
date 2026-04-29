@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SahamMeter Dashboard</title>
+    <style>
+      :root {
+        --bg: #08111f;
+        --panel: rgba(8, 17, 31, 0.78);
+        --panel-border: rgba(122, 162, 255, 0.18);
+        --text: #e9eefb;
+        --muted: #98a5c1;
+        --accent: #4fd1c5;
+        --danger: #ff6b6b;
+        --good: #40d39f;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: Inter, system-ui, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(124, 147, 255, 0.22), transparent 30%),
+          radial-gradient(circle at top right, rgba(79, 209, 197, 0.18), transparent 26%),
+          linear-gradient(180deg, #08111f 0%, #0b1730 100%);
+        min-height: 100vh;
+      }
+      header {
+        padding: 32px 24px 12px;
+        max-width: 1240px;
+        margin: 0 auto;
+      }
+      h1 {
+        margin: 0 0 10px;
+        font-size: clamp(2rem, 4vw, 3.5rem);
+      }
+      .subtitle {
+        color: var(--muted);
+        max-width: 720px;
+        line-height: 1.6;
+      }
+      .wrap {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 12px 24px 36px;
+        display: grid;
+        gap: 18px;
+        grid-template-columns: repeat(12, 1fr);
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: 22px;
+        padding: 20px;
+        box-shadow: 0 16px 50px rgba(0, 0, 0, 0.22);
+        backdrop-filter: blur(14px);
+      }
+      .hero {
+        grid-column: span 12;
+      }
+      .panel {
+        grid-column: span 4;
+        min-height: 360px;
+      }
+      .panel h2 {
+        margin-top: 0;
+        font-size: 1.1rem;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 10px 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        text-align: left;
+      }
+      th {
+        color: #cbd6f5;
+        font-size: 0.88rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .pill {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: rgba(79, 209, 197, 0.12);
+        color: #8ff3e9;
+        font-size: 0.84rem;
+      }
+      .grid-list {
+        display: grid;
+        gap: 12px;
+      }
+      .item {
+        padding: 14px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .title {
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.5;
+      }
+      .value-up {
+        color: var(--good);
+      }
+      .value-down {
+        color: var(--danger);
+      }
+      @media (max-width: 1080px) {
+        .panel {
+          grid-column: span 6;
+        }
+      }
+      @media (max-width: 720px) {
+        .panel {
+          grid-column: span 12;
+        }
+        header,
+        .wrap {
+          padding-left: 16px;
+          padding-right: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="pill">SahamMeter · IDX Market Monitoring</div>
+      <h1>Dashboard Saham & Berita Pasar Modal</h1>
+      <p class="subtitle">
+        Panel ini menampilkan hasil Spark, data live dari Kafka consumer, dan artikel berita
+        terbaru. Data diperbarui otomatis setiap 30 detik agar demo terlihat aktif dari ujung ke
+        ujung.
+      </p>
+    </header>
+
+    <main class="wrap">
+      <section class="card hero">
+        <h2>Status Pipeline</h2>
+        <p class="meta" id="status-text">Memuat data pipeline...</p>
+      </section>
+
+      <section class="card panel">
+        <h2>Hasil Spark</h2>
+        <div id="spark-panel" class="grid-list"></div>
+      </section>
+
+      <section class="card panel">
+        <h2>Live API Saham</h2>
+        <div id="api-panel" class="grid-list"></div>
+      </section>
+
+      <section class="card panel">
+        <h2>Berita RSS Terbaru</h2>
+        <div id="rss-panel" class="grid-list"></div>
+      </section>
+    </main>
+
+    <script>
+      const statusText = document.getElementById('status-text');
+      const sparkPanel = document.getElementById('spark-panel');
+      const apiPanel = document.getElementById('api-panel');
+      const rssPanel = document.getElementById('rss-panel');
+
+      function formatPercent(value) {
+        if (value === null || value === undefined || Number.isNaN(Number(value))) {
+          return '-';
+        }
+        const numeric = Number(value);
+        const klass = numeric >= 0 ? 'value-up' : 'value-down';
+        return `<span class="${klass}">${numeric.toFixed(2)}%</span>`;
+      }
+
+      function renderSpark(data) {
+        const stockTable = (data.stock_return || [])
+          .slice(0, 5)
+          .map(
+            (row) => `
+				<tr>
+					<td>${row.symbol || '-'}</td>
+					<td>${row.price_start ?? '-'}</td>
+					<td>${row.price_latest ?? '-'}</td>
+					<td>${formatPercent(row.return_pct)}</td>
+				</tr>
+			`,
+          )
+          .join('');
+
+        const topMentions = (data.word_trends || data.news_mentions || data.company_mentions || [])
+          .slice(0, 5)
+          .map(
+            (row) => `
+				<div class="item">
+					<div class="title">${row.company || row.keyword || row.word || '-'}</div>
+					<div class="muted">Frekuensi sebutan: ${row.count ?? 0}</div>
+				</div>
+			`,
+          )
+          .join('');
+
+        sparkPanel.innerHTML = `
+				<div class="item">
+					<div class="title">Return per saham</div>
+					<table>
+						<thead><tr><th>Kode</th><th>Awal</th><th>Terkini</th><th>Return</th></tr></thead>
+						<tbody>${stockTable || '<tr><td colspan="4">Belum ada hasil Spark.</td></tr>'}</tbody>
+					</table>
+				</div>
+				<div class="item">
+					<div class="title">Ringkasan berita</div>
+					<div class="grid-list">${topMentions || '<div class="muted">Belum ada ringkasan berita.</div>'}</div>
+				</div>
+			`;
+      }
+
+      function renderApi(items) {
+        const list = (items || [])
+          .slice(0, 6)
+          .map(
+            (item) => `
+				<div class="item">
+					<div class="title">${item.symbol || item.ticker || '-'} ${formatPercent(item.change_24h_pct)}</div>
+					<div class="muted">Harga: ${item.price_current ?? '-'} | Open: ${item.price_open ?? '-'} | Vol: ${item.volume ?? '-'}</div>
+				</div>
+			`,
+          )
+          .join('');
+        apiPanel.innerHTML = list || '<div class="muted">Belum ada data live API.</div>';
+      }
+
+      function renderRss(items) {
+        const list = (items || [])
+          .slice(0, 6)
+          .map(
+            (item) => `
+				<div class="item">
+					<div class="title">${item.title || '-'}</div>
+					<div class="muted">${item.source || '-'} · ${item.published || item.timestamp || '-'}</div>
+				</div>
+			`,
+          )
+          .join('');
+        rssPanel.innerHTML = list || '<div class="muted">Belum ada berita RSS.</div>';
+      }
+
+      async function refreshData() {
+        try {
+          const response = await fetch('/api/data', { cache: 'no-store' });
+          const data = await response.json();
+          renderSpark(data.spark || {});
+          renderApi(data.live_api || []);
+          renderRss(data.live_rss || []);
+          statusText.textContent = `Terakhir dimuat: ${new Date().toLocaleString('id-ID')}`;
+        } catch (error) {
+          statusText.textContent = `Gagal memuat data: ${error.message}`;
+        }
+      }
+
+      refreshData();
+      setInterval(refreshData, 30000);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,57 @@
+services:
+  namenode:
+    image: apache/hadoop:3
+    platform: linux/amd64
+    hostname: namenode
+    container_name: hadoop-namenode
+    ports:
+      - "9870:9870"   # Web UI
+      - "8020:8020"   # RPC
+    environment:
+      ENSURE_NAMENODE_DIR: /tmp/hadoop-hadoop/dfs/name
+    env_file:
+      - ./hadoop.env
+    command: ["hdfs", "namenode"]
+
+  datanode:
+    image: apache/hadoop:3
+    platform: linux/amd64
+    hostname: datanode
+    container_name: hadoop-datanode
+    ports:
+      - "9864:9864"   # Web UI
+      - "50010:50010" # Data transfer
+    depends_on:
+      namenode:
+        condition: service_started
+    env_file:
+      - ./hadoop.env
+    command: ["hdfs", "datanode"]
+
+  resourcemanager:
+    image: apache/hadoop:3
+    platform: linux/amd64
+    hostname: resourcemanager
+    container_name: hadoop-resourcemanager
+    depends_on:
+      datanode:
+        condition: service_started
+    ports:
+      - "8088:8088"   # ResourceManager Web UI
+    env_file:
+      - ./hadoop.env
+    command: ["yarn", "resourcemanager"]
+
+  nodemanager:
+    image: apache/hadoop:3
+    platform: linux/amd64
+    hostname: nodemanager
+    container_name: hadoop-nodemanager
+    depends_on:
+      resourcemanager:
+        condition: service_started
+    ports:
+      - "8042:8042"   # NodeManager Web UI
+    env_file:
+      - ./hadoop.env
+    command: ["yarn", "nodemanager"]
