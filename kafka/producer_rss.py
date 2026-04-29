@@ -25,7 +25,7 @@ RSS_FEEDS = [
 
 DEFAULT_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
 DEFAULT_TOPIC = os.getenv("RSS_TOPIC", "saham-rss")
-POLL_INTERVAL_SECONDS = int(os.getenv("RSS_POLL_INTERVAL_SECONDS", "10"))
+POLL_INTERVAL_SECONDS = int(os.getenv("RSS_POLL_INTERVAL_SECONDS", "300"))
 STATE_FILE = os.getenv("RSS_STATE_FILE", ".rss_seen_ids.json")
 
 

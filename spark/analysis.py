@@ -183,6 +183,27 @@ def compute_company_mentions(df: DataFrame) -> list[dict]:
     return sorted(results, key=lambda item: item["count"], reverse=True)
 
 
+def compute_company_hourly_mentions(df: DataFrame, company: str) -> list[dict]:
+    terms = COMPANY_TERMS.get(company, [])
+    if df.rdd.isEmpty() or not terms:
+        return []
+
+    condition = F.lit(False)
+    lower_title = F.lower(F.coalesce(F.col("title"), F.lit("")))
+    lower_summary = F.lower(F.coalesce(F.col("summary"), F.lit("")))
+    for term in terms:
+        condition = condition | lower_title.contains(term) | lower_summary.contains(term)
+
+    summary = (
+        df.filter(condition)
+        .withColumn("hour", F.hour("timestamp_ts"))
+        .groupBy("hour")
+        .agg(F.count("*").alias("count"))
+        .orderBy("hour")
+    )
+    return [row.asDict() for row in summary.collect()]
+
+
 def write_local_results(result: dict) -> None:
     with open(LOCAL_RESULTS_PATH, "w", encoding="utf-8") as handle:
         json.dump(result, handle, ensure_ascii=False, indent=2)
@@ -235,20 +256,35 @@ def main() -> None:
     hourly_summary = compute_hourly_summary_sql(spark) if not api_df.rdd.isEmpty() else []
     word_trends = compute_news_mentions_sql(spark) if not rss_df.rdd.isEmpty() else []
     company_mentions = compute_company_mentions(rss_df)
+    top_company = company_mentions[0]["company"] if company_mentions else None
+    top_company_hourly_mentions = compute_company_hourly_mentions(rss_df, top_company) if top_company else []
+    spark_kpis = {
+        "api_events": api_count,
+        "rss_events": rss_count,
+        "top_return_symbol": stock_return[0]["symbol"] if stock_return else None,
+        "top_return_pct": stock_return[0]["return_pct"] if stock_return else None,
+        "top_company": top_company,
+        "top_company_mentions": company_mentions[0]["count"] if company_mentions else 0,
+    }
 
     result = {
         "generated_at": utc_now_iso(),
+        "api_event_count": api_count,
+        "rss_event_count": rss_count,
         "stock_return": stock_return,
         "intraday_volatility": intraday_volatility,
         "hourly_summary": hourly_summary,
         "word_trends": word_trends,
         "company_mentions": company_mentions,
+        "top_company_hourly_mentions": top_company_hourly_mentions,
+        "spark_kpis": spark_kpis,
         "interpretation": {
             "stock_return": "Saham dengan return tertinggi menunjukkan momentum terkuat pada periode data yang tersedia.",
             "intraday_volatility": "Standar deviasi harga yang tinggi mengindikasikan saham lebih fluktuatif untuk dipantau.",
             "hourly_summary": "Rata-rata harga per jam membantu melihat pola intraday selama data terkumpul.",
             "word_trends": "Kata yang sering muncul di judul berita membantu mengidentifikasi tema pasar yang dominan.",
             "company_mentions": "Frekuensi sebutan emiten di berita dapat dipakai sebagai sinyal konteks sentimen pasar.",
+            "top_company_hourly_mentions": "Pola sebutan emiten unggulan per jam membantu melihat kapan topik tersebut paling ramai dibahas.",
         },
     }
 

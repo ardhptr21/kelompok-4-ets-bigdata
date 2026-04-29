@@ -61,9 +61,33 @@
       .hero {
         grid-column: span 12;
       }
-      .panel {
-        grid-column: span 4;
-        min-height: 360px;
+      .kpi-grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        margin-top: 16px;
+      }
+      .kpi {
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .kpi-label {
+        color: var(--muted);
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 6px;
+      }
+      .kpi-value {
+        font-size: 1.3rem;
+        font-weight: 700;
+      }
+      .kpi-sub {
+        color: var(--muted);
+        font-size: 0.88rem;
+        margin-top: 4px;
       }
       .panel h2 {
         margin-top: 0;
@@ -101,6 +125,50 @@
         display: grid;
         gap: 12px;
       }
+      .chart-grid {
+        display: grid;
+        gap: 12px;
+        margin-top: 12px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .chart-box {
+        padding: 14px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .chart-box canvas {
+        width: 100% !important;
+        height: 280px !important;
+      }
+      .tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        grid-column: span 12;
+      }
+      .tab-button {
+        appearance: none;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--muted);
+        padding: 10px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: all 0.18s ease;
+      }
+      .tab-button.active {
+        background: rgba(79, 209, 197, 0.16);
+        border-color: rgba(79, 209, 197, 0.45);
+        color: var(--text);
+      }
+      .tab-content {
+        grid-column: span 12;
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
       .item {
         padding: 14px;
         border-radius: 16px;
@@ -123,13 +191,15 @@
         color: var(--danger);
       }
       @media (max-width: 1080px) {
-        .panel {
-          grid-column: span 6;
+        .kpi-grid,
+        .chart-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
       }
       @media (max-width: 720px) {
-        .panel {
-          grid-column: span 12;
+        .kpi-grid,
+        .chart-grid {
+          grid-template-columns: repeat(1, minmax(0, 1fr));
         }
         header,
         .wrap {
@@ -154,29 +224,86 @@
       <section class="card hero">
         <h2>Status Pipeline</h2>
         <p class="meta" id="status-text">Memuat data pipeline...</p>
+        <div id="kpi-grid" class="kpi-grid"></div>
       </section>
 
-      <section class="card panel">
+      <div class="tabs">
+        <button class="tab-button active" data-tab-target="spark-tab" type="button">Spark</button>
+        <button class="tab-button" data-tab-target="api-tab" type="button">Live API</button>
+        <button class="tab-button" data-tab-target="rss-tab" type="button">RSS</button>
+      </div>
+
+      <section class="card tab-content active" id="spark-tab">
         <h2>Hasil Spark</h2>
         <div id="spark-panel" class="grid-list"></div>
+        <div class="chart-grid">
+          <div class="chart-box">
+            <div class="title">Spark Chart: Return per Saham</div>
+            <canvas id="return-chart"></canvas>
+          </div>
+          <div class="chart-box">
+            <div class="title">Spark Chart: Rata-rata Harga per Jam</div>
+            <canvas id="hourly-chart"></canvas>
+          </div>
+          <div class="chart-box">
+            <div class="title">Spark Chart: API vs RSS Volume</div>
+            <canvas id="volume-chart"></canvas>
+          </div>
+          <div class="chart-box">
+            <div class="title">Spark Chart: Top Mentioned Company</div>
+            <canvas id="company-chart"></canvas>
+          </div>
+        </div>
       </section>
 
-      <section class="card panel">
+      <section class="card tab-content" id="api-tab">
         <h2>Live API Saham</h2>
         <div id="api-panel" class="grid-list"></div>
       </section>
 
-      <section class="card panel">
+      <section class="card tab-content" id="rss-tab">
         <h2>Berita RSS Terbaru</h2>
         <div id="rss-panel" class="grid-list"></div>
       </section>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>
       const statusText = document.getElementById('status-text');
       const sparkPanel = document.getElementById('spark-panel');
       const apiPanel = document.getElementById('api-panel');
       const rssPanel = document.getElementById('rss-panel');
+      const tabButtons = Array.from(document.querySelectorAll('.tab-button'));
+      const tabContents = Array.from(document.querySelectorAll('.tab-content'));
+      const kpiGrid = document.getElementById('kpi-grid');
+      const returnChartCanvas = document.getElementById('return-chart');
+      const hourlyChartCanvas = document.getElementById('hourly-chart');
+      const volumeChartCanvas = document.getElementById('volume-chart');
+      const companyChartCanvas = document.getElementById('company-chart');
+      let returnChart = null;
+      let hourlyChart = null;
+      let volumeChart = null;
+      let companyChart = null;
+
+      function activateTab(tabId) {
+        tabButtons.forEach((button) => {
+          button.classList.toggle('active', button.dataset.tabTarget === tabId);
+        });
+        tabContents.forEach((content) => {
+          content.classList.toggle('active', content.id === tabId);
+        });
+        window.setTimeout(() => {
+          returnChart?.resize();
+          hourlyChart?.resize();
+          volumeChart?.resize();
+          companyChart?.resize();
+        }, 0);
+      }
+
+      tabButtons.forEach((button) => {
+        button.addEventListener('click', () => activateTab(button.dataset.tabTarget));
+      });
+      activateTab('spark-tab');
 
       function formatPercent(value) {
         if (value === null || value === undefined || Number.isNaN(Number(value))) {
@@ -188,6 +315,7 @@
       }
 
       function renderSpark(data) {
+        renderKpis(data);
         const stockTable = (data.stock_return || [])
           .slice(0, 5)
           .map(
@@ -227,6 +355,219 @@
 					<div class="grid-list">${topMentions || '<div class="muted">Belum ada ringkasan berita.</div>'}</div>
 				</div>
 			`;
+        updateCharts(data.stock_return || [], data.hourly_summary || []);
+        updateVolumeChart(data.api_event_count || 0, data.rss_event_count || 0);
+        updateCompanyChart(data.top_company_hourly_mentions || [], data.spark_kpis || {});
+      }
+
+      function renderKpis(data) {
+        const kpis = data.spark_kpis || {};
+        const topReturnSymbol = kpis.top_return_symbol || '-';
+        const topReturnPct = kpis.top_return_pct !== null && kpis.top_return_pct !== undefined
+          ? `${Number(kpis.top_return_pct).toFixed(2)}%`
+          : '-';
+        const topCompany = kpis.top_company || '-';
+        const topCompanyMentions = kpis.top_company_mentions ?? 0;
+        kpiGrid.innerHTML = `
+          <div class="kpi">
+            <div class="kpi-label">API Events</div>
+            <div class="kpi-value">${data.api_event_count ?? 0}</div>
+            <div class="kpi-sub">Event saham dari producer API</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">RSS Events</div>
+            <div class="kpi-value">${data.rss_event_count ?? 0}</div>
+            <div class="kpi-sub">Item berita dari producer RSS</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Top Return</div>
+            <div class="kpi-value">${topReturnSymbol}</div>
+            <div class="kpi-sub">${topReturnPct}</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Top Mentioned</div>
+            <div class="kpi-value">${topCompany}</div>
+            <div class="kpi-sub">${topCompanyMentions} sebutan</div>
+          </div>
+        `;
+      }
+
+      function updateCharts(stockReturn, hourlySummary) {
+        if (typeof Chart === 'undefined') {
+          return;
+        }
+
+        const sortedReturn = [...stockReturn].sort((a, b) => (Number(b.return_pct) || 0) - (Number(a.return_pct) || 0));
+        const returnLabels = sortedReturn.map((row) => row.symbol || '-');
+        const returnValues = sortedReturn.map((row) => Number(row.return_pct) || 0);
+
+        const hourlySorted = [...hourlySummary].sort((a, b) => (Number(a.hour) || 0) - (Number(b.hour) || 0));
+        const hourlyLabels = hourlySorted.map((row) => `${String(row.hour).padStart(2, '0')}:00`);
+        const hourlyValues = hourlySorted.map((row) => Number(row.avg_price) || 0);
+
+        if (returnChart) {
+          returnChart.destroy();
+        }
+        returnChart = new Chart(returnChartCanvas, {
+          type: 'bar',
+          data: {
+            labels: returnLabels,
+            datasets: [
+              {
+                label: 'Return %',
+                data: returnValues,
+                backgroundColor: 'rgba(79, 209, 197, 0.72)',
+                borderColor: 'rgba(79, 209, 197, 1)',
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                labels: {
+                  color: '#e9eefb',
+                },
+              },
+            },
+            scales: {
+              x: {
+                ticks: { color: '#98a5c1' },
+                grid: { color: 'rgba(255,255,255,0.06)' },
+              },
+              y: {
+                ticks: { color: '#98a5c1' },
+                grid: { color: 'rgba(255,255,255,0.06)' },
+              },
+            },
+          },
+        });
+
+        if (hourlyChart) {
+          hourlyChart.destroy();
+        }
+        hourlyChart = new Chart(hourlyChartCanvas, {
+          type: 'line',
+          data: {
+            labels: hourlyLabels,
+            datasets: [
+              {
+                label: 'Avg Price',
+                data: hourlyValues,
+                borderColor: 'rgba(64, 211, 159, 1)',
+                backgroundColor: 'rgba(64, 211, 159, 0.18)',
+                tension: 0.35,
+                fill: true,
+                pointRadius: 3,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                labels: {
+                  color: '#e9eefb',
+                },
+              },
+            },
+            scales: {
+              x: {
+                ticks: { color: '#98a5c1' },
+                grid: { color: 'rgba(255,255,255,0.06)' },
+              },
+              y: {
+                ticks: { color: '#98a5c1' },
+                grid: { color: 'rgba(255,255,255,0.06)' },
+              },
+            },
+          },
+        });
+      }
+
+      function updateVolumeChart(apiCount, rssCount) {
+        if (typeof Chart === 'undefined') {
+          return;
+        }
+        if (volumeChart) {
+          volumeChart.destroy();
+        }
+        volumeChart = new Chart(volumeChartCanvas, {
+          type: 'doughnut',
+          data: {
+            labels: ['API', 'RSS'],
+            datasets: [
+              {
+                data: [Number(apiCount) || 0, Number(rssCount) || 0],
+                backgroundColor: ['rgba(79, 209, 197, 0.8)', 'rgba(124, 147, 255, 0.8)'],
+                borderColor: ['rgba(79, 209, 197, 1)', 'rgba(124, 147, 255, 1)'],
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                labels: { color: '#e9eefb' },
+              },
+            },
+          },
+        });
+      }
+
+      function updateCompanyChart(series, kpis) {
+        if (typeof Chart === 'undefined') {
+          return;
+        }
+
+        const labels = (series || []).map((row) => `${String(row.hour).padStart(2, '0')}:00`);
+        const values = (series || []).map((row) => Number(row.count) || 0);
+        const companyName = kpis.top_company || 'Top Company';
+
+        if (companyChart) {
+          companyChart.destroy();
+        }
+        companyChart = new Chart(companyChartCanvas, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: companyName,
+                data: values,
+                borderColor: 'rgba(255, 107, 107, 1)',
+                backgroundColor: 'rgba(255, 107, 107, 0.18)',
+                tension: 0.35,
+                fill: true,
+                pointRadius: 3,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                labels: { color: '#e9eefb' },
+              },
+            },
+            scales: {
+              x: {
+                ticks: { color: '#98a5c1' },
+                grid: { color: 'rgba(255,255,255,0.06)' },
+              },
+              y: {
+                ticks: { color: '#98a5c1' },
+                grid: { color: 'rgba(255,255,255,0.06)' },
+              },
+            },
+          },
+        });
       }
 
       function renderApi(items) {

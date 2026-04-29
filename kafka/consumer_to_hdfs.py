@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import os
-import subprocess
 import threading
 import time
 from collections import defaultdict
@@ -23,7 +22,7 @@ API_TOPIC = os.getenv("API_TOPIC", "saham-api")
 RSS_TOPIC = os.getenv("RSS_TOPIC", "saham-rss")
 BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
 GROUP_ID = os.getenv("CONSUMER_GROUP_ID", "saham-to-hdfs")
-FLUSH_SECONDS = int(os.getenv("CONSUMER_FLUSH_SECONDS", "10"))
+FLUSH_SECONDS = int(os.getenv("CONSUMER_FLUSH_SECONDS", "180"))
 HDFS_BASE = os.getenv("HDFS_BASE_PATH", "/data/saham")
 HDFS_WEB_URL = os.getenv("HDFS_WEB_URL", "http://localhost:9870")
 HDFS_USER = os.getenv("HDFS_USER", "hadoop")
@@ -68,23 +67,16 @@ def ensure_hdfs_dirs() -> None:
 	global _HDFS_DIRS_ATTEMPTED
 	if not ENABLE_HDFS_REMOTE or _HDFS_REMOTE_DISABLED or _HDFS_DIRS_ATTEMPTED:
 		return
+	client = hdfs_client()
+	if client is None:
+		return
 	for suffix in ("api", "rss", "hasil"):
 		target = f"{HDFS_BASE}/{suffix}"
-		full_target = f"hdfs://{HDFS_NAMENODE_HOST}:{HDFS_NAMENODE_PORT}{target}"
 		try:
-			# prefer the Hadoop-style wrapper `hdfs dfs -mkdir -p`
-			proc = subprocess.run(["hdfs", "dfs", "-mkdir", "-p", full_target], capture_output=True, text=True)
-			stderr = (proc.stderr or "").lower()
-			if proc.returncode != 0 and "unknown command: dfs" in stderr:
-				# busybox-style `hdfs` uses `mkdir -p` directly
-				proc = subprocess.run(["hdfs", "mkdir", "-p", full_target], capture_output=True, text=True)
-				stderr = (proc.stderr or "").lower()
-			if proc.returncode != 0:
-				if "permission denied" in stderr:
-					disable_hdfs_remote()
-				return
-		except FileNotFoundError:
-			# `hdfs` command not available on host (dev/demo). Allow local fallback.
+			client.makedirs(target)
+		except Exception as exc:
+			disable_hdfs_remote()
+			print(f"Warning: HDFS makedirs failed ({exc}); using local fallback only.", flush=True)
 			return
 	_HDFS_DIRS_ATTEMPTED = True
 
@@ -138,18 +130,16 @@ def upload_to_hdfs(topic_suffix: str, payload: list[dict[str, Any]]) -> None:
 
 	if _HDFS_REMOTE_DISABLED:
 		return
-
-	# Try subprocess hdfs commands; support both 'hdfs dfs -put' and 'hdfs put'
-	# use explicit namenode host:port to avoid unresolved 'namenode' hostname
-	full_target = f"hdfs://{HDFS_NAMENODE_HOST}:{HDFS_NAMENODE_PORT}{hdfs_target_dir}/{snapshot_name}"
-	try:
-		proc = subprocess.run(["hdfs", "dfs", "-put", "-f", str(local_file), full_target], capture_output=True, text=True)
-		if proc.returncode != 0 and "Unknown command: dfs" in proc.stderr:
-			# fallback to busybox-like `hdfs put` (no -f flag)
-			subprocess.run(["hdfs", "put", str(local_file), full_target], check=False)
-	except FileNotFoundError:
-		# hdfs CLI missing; rely on local snapshot written to `dashboard/data/` instead.
+	client = hdfs_client()
+	if client is None:
 		return
+	try:
+		client.makedirs(hdfs_target_dir)
+		with open(local_file, "rb") as handle:
+			client.write(f"{hdfs_target_dir}/{snapshot_name}", handle, overwrite=True)
+	except Exception as exc:
+		_HDFS_REMOTE_DISABLED = True
+		print(f"Warning: HDFS client failed ({exc}); using local fallback only.", flush=True)
 
 
 def consume_topic(topic: str, topic_suffix: str, queue: Queue[dict[str, Any]]) -> None:

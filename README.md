@@ -85,13 +85,13 @@ docker exec -it kafka-broker /opt/kafka/bin/kafka-topics.sh --bootstrap-server l
 python kafka/consumer_to_hdfs.py
 ```
 
-Secara default consumer berjalan local-first: file `dashboard/data/live_api.json` dan `dashboard/data/live_rss.json` akan terus diperbarui agar dashboard langsung menampilkan data. Jika ingin menulis ke HDFS juga, jalankan dengan:
+ Secara default consumer berjalan local-first: file `dashboard/data/live_api.json` dan `dashboard/data/live_rss.json` akan terus diperbarui agar dashboard langsung menampilkan data. Jika ingin menulis ke HDFS juga, jalankan dengan:
 
 ```bash
 ENABLE_HDFS_REMOTE=1 python kafka/consumer_to_hdfs.py
 ```
 
-Gunakan mode HDFS hanya jika host/container Anda memang bisa menjangkau NameNode dan DataNode.
+ Gunakan mode HDFS hanya jika host/container Anda memang bisa menjangkau NameNode dan DataNode. Buffer consumer di-flush kira-kira setiap 3 menit, masih masuk rentang 2-5 menit sesuai rubrik.
 
 6. Jalankan producers (masing-masing di terminal terpisah)
 
@@ -115,7 +115,7 @@ python spark/analysis.py
 # spark-submit spark/analysis.py
 ```
 
-Script membaca dari HDFS (`/data/saham/api`, `/data/saham/rss`) dan fallback ke `dashboard/data/live_api.json` serta `dashboard/data/live_rss.json` bila HDFS tidak tersedia.
+ Script membaca dari HDFS (`/data/saham/api`, `/data/saham/rss`) dan fallback ke `dashboard/data/live_api.json` serta `dashboard/data/live_rss.json` bila HDFS tidak tersedia.
 Kalau hanya ingin dashboard live tanpa analisis Spark, langkah ini boleh dilewati sementara.
 
 8. Jalankan dashboard Flask
@@ -140,6 +140,9 @@ Troubleshooting singkat
 - Jika `kafka-topics.sh` tidak ada di PATH container, cari di `/opt/kafka/bin/` dan jalankan langsung.
 - Jika consumer dijalankan dari host, biarkan `ENABLE_HDFS_REMOTE` tidak diset. Mode local-first akan menyimpan snapshot ke `dashboard/data/` dan dashboard tetap menampilkan data.
 - Jika ingin HDFS dari host, Anda harus memastikan NameNode/DataNode benar-benar bisa diakses dari host. Kalau tidak, gunakan mode local-first.
+- API producer polling default: 60 detik.
+- RSS producer polling default: 300 detik.
+- Consumer flush default: 180 detik.
 - Gunakan beberapa terminal atau `tmux`/`screen` untuk menjalankan services secara paralel.
 
 Jika mau, saya bisa membuat satu skrip `run-all.sh` untuk menjalankan service Python di background atau dockerize service Python menjadi container orchestrated oleh compose.
@@ -149,6 +152,9 @@ Jika mau, saya bisa membuat satu skrip `run-all.sh` untuk menjalankan service Py
 - Data API terkini disimpan ke Kafka topic `saham-api`.
 - Artikel RSS disimpan ke Kafka topic `saham-rss`.
 - Snapshot data tersimpan ke HDFS pada `/data/saham/api/` dan `/data/saham/rss/` jika `ENABLE_HDFS_REMOTE=1`, dan selalu disalin ke `dashboard/data/live_api.json` serta `dashboard/data/live_rss.json`.
+- API producer mengirim data setiap 60 detik.
+- RSS producer mengirim data baru setiap 300 detik.
+- Consumer menggabungkan buffer dan flush ke HDFS setiap 180 detik.
 - Hasil Spark tersimpan ke `/data/saham/hasil/` dan `dashboard/data/spark_results.json`.
 - Dashboard membaca `dashboard/data/spark_results.json`, `dashboard/data/live_api.json`, dan `dashboard/data/live_rss.json`.
 
@@ -169,3 +175,5 @@ Jika mau, saya bisa membuat satu skrip `run-all.sh` untuk menjalankan service Py
 
 - Struktur data dibuat konsisten agar Spark membaca field saham dan RSS langsung dari HDFS.
 - Dashboard memakai auto-refresh 30 detik untuk menampilkan data yang terus berubah.
+- Dashboard menampilkan chart berbasis data Spark menggunakan Chart.js.
+- Consumer menulis ke HDFS langsung lewat library `hdfs` Python saat `ENABLE_HDFS_REMOTE=1`.

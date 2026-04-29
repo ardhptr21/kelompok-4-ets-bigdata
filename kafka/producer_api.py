@@ -36,7 +36,7 @@ COMPANY_NAMES = {
 
 DEFAULT_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
 DEFAULT_TOPIC = os.getenv("API_TOPIC", "saham-api")
-POLL_INTERVAL_SECONDS = int(os.getenv("API_POLL_INTERVAL_SECONDS", "10"))
+POLL_INTERVAL_SECONDS = int(os.getenv("API_POLL_INTERVAL_SECONDS", "60"))
 
 
 def safe_float(value: Any) -> float | None:
