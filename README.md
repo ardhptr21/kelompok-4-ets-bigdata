@@ -77,6 +77,10 @@ docker exec -it kafka-broker /opt/kafka/bin/kafka-topics.sh --create --bootstrap
 docker exec -it kafka-broker /opt/kafka/bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic saham-rss
 # verifikasi
 docker exec -it kafka-broker /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
+
+
+docker exec -it hadoop-namenode hdfs dfs -mkdir -p /data/saham
+docker exec -it hadoop-namenode hdfs dfs -chmod -R 777 /data/saham
 ```
 
 5. Jalankan consumer (menulis ke HDFS atau fallback ke `dashboard/data`)
@@ -85,13 +89,19 @@ docker exec -it kafka-broker /opt/kafka/bin/kafka-topics.sh --bootstrap-server l
 python kafka/consumer_to_hdfs.py
 ```
 
- Secara default consumer berjalan local-first: file `dashboard/data/live_api.json` dan `dashboard/data/live_rss.json` akan terus diperbarui agar dashboard langsung menampilkan data. Jika ingin menulis ke HDFS juga, jalankan dengan:
+Secara default consumer berjalan local-first: file `dashboard/data/live_api.json` dan `dashboard/data/live_rss.json` akan terus diperbarui agar dashboard langsung menampilkan data. Jika ingin menulis ke HDFS juga, jalankan dengan:
 
 ```bash
-ENABLE_HDFS_REMOTE=1 python kafka/consumer_to_hdfs.py
+ENABLE_HDFS_REMOTE=1 HDFS_NAMENODE_HOST=namenode python kafka/consumer_to_hdfs.py
 ```
 
- Gunakan mode HDFS hanya jika host/container Anda memang bisa menjangkau NameNode dan DataNode. Buffer consumer di-flush kira-kira setiap 3 menit, masih masuk rentang 2-5 menit sesuai rubrik.
+Jika consumer dijalankan dari host dan NameNode diekspos ke host, Anda juga bisa pakai:
+
+```bash
+ENABLE_HDFS_REMOTE=1 HDFS_WEB_URL=http://localhost:9870 python kafka/consumer_to_hdfs.py
+```
+
+Gunakan mode HDFS hanya jika host/container Anda memang bisa menjangkau NameNode dan DataNode. Buffer consumer di-flush kira-kira setiap 3 menit, masih masuk rentang 2-5 menit sesuai rubrik.
 
 6. Jalankan producers (masing-masing di terminal terpisah)
 
@@ -115,7 +125,7 @@ python spark/analysis.py
 # spark-submit spark/analysis.py
 ```
 
- Script membaca dari HDFS (`/data/saham/api`, `/data/saham/rss`) dan fallback ke `dashboard/data/live_api.json` serta `dashboard/data/live_rss.json` bila HDFS tidak tersedia.
+Script membaca dari HDFS (`/data/saham/api`, `/data/saham/rss`) dan fallback ke `dashboard/data/live_api.json` serta `dashboard/data/live_rss.json` bila HDFS tidak tersedia.
 Kalau hanya ingin dashboard live tanpa analisis Spark, langkah ini boleh dilewati sementara.
 
 8. Jalankan dashboard Flask

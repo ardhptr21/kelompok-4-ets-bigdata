@@ -22,13 +22,15 @@ API_TOPIC = os.getenv("API_TOPIC", "saham-api")
 RSS_TOPIC = os.getenv("RSS_TOPIC", "saham-rss")
 BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
 GROUP_ID = os.getenv("CONSUMER_GROUP_ID", "saham-to-hdfs")
-FLUSH_SECONDS = int(os.getenv("CONSUMER_FLUSH_SECONDS", "180"))
+FLUSH_SECONDS = int(os.getenv("CONSUMER_FLUSH_SECONDS", "1"))
 HDFS_BASE = os.getenv("HDFS_BASE_PATH", "/data/saham")
-HDFS_WEB_URL = os.getenv("HDFS_WEB_URL", "http://localhost:9870")
-HDFS_USER = os.getenv("HDFS_USER", "hadoop")
 HDFS_NAMENODE_HOST = os.getenv("HDFS_NAMENODE_HOST", "localhost")
+HDFS_WEB_PORT = os.getenv("HDFS_WEB_PORT", "9870")
+HDFS_WEB_URL = os.getenv("HDFS_WEB_URL")
+HDFS_USER = os.getenv("HDFS_USER", "hadoop")
 HDFS_NAMENODE_PORT = os.getenv("HDFS_NAMENODE_PORT", "8020")
 ENABLE_HDFS_REMOTE = os.getenv("ENABLE_HDFS_REMOTE", "").lower() in {"1", "true", "yes"}
+
 LOCAL_DATA_DIR = Path(os.getenv("LOCAL_DATA_DIR", "dashboard/data"))
 LOCAL_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -47,6 +49,12 @@ def utc_now_iso() -> str:
 
 def timestamp_label() -> str:
 	return datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+
+def resolved_hdfs_web_url() -> str:
+	if HDFS_WEB_URL:
+		return HDFS_WEB_URL
+	return f"http://{HDFS_NAMENODE_HOST}:{HDFS_WEB_PORT}"
 
 
 def build_consumer(topic: str, group_suffix: str) -> KafkaConsumer:
@@ -88,7 +96,7 @@ def hdfs_client() -> InsecureClient | None:
 	if InsecureClient is None:
 		return None
 	try:
-		return InsecureClient(HDFS_WEB_URL, user=HDFS_USER)
+		return InsecureClient(resolved_hdfs_web_url(), user=HDFS_USER)
 	except Exception:
 		_HDFS_REMOTE_DISABLED = True
 		return None
@@ -106,40 +114,35 @@ def upload_to_hdfs(topic_suffix: str, payload: list[dict[str, Any]]) -> None:
 	if not ENABLE_HDFS_REMOTE:
 		return
 	ensure_hdfs_dirs()
-	snapshot_name = f"{timestamp_label()}.json"
 	hdfs_target_dir = f"{HDFS_BASE}/{topic_suffix}"
-	local_file = LOCAL_DATA_DIR / f"{topic_suffix}_{snapshot_name}"
-	with open(local_file, "w", encoding="utf-8") as handle:
-		json.dump(payload, handle, ensure_ascii=False, indent=2)
-
 	if _HDFS_REMOTE_DISABLED:
 		return
 
-	client = hdfs_client()
-	if client is not None:
-		try:
-			client.makedirs(hdfs_target_dir)
-			with open(local_file, "rb") as handle:
-				client.write(f"{hdfs_target_dir}/{snapshot_name}", handle, overwrite=True)
-			return
-		except Exception as exc:
-			_HDFS_REMOTE_DISABLED = True
-			# HDFS unreachable (datanode hostname, network, etc.); rely on local files.
-			print(f"Warning: HDFS client failed ({exc}); using local fallback only.", flush=True)
-			return
-
-	if _HDFS_REMOTE_DISABLED:
-		return
 	client = hdfs_client()
 	if client is None:
 		return
+
+	snapshot_name = f"{timestamp_label()}.json"
+	hdfs_target_path = f"{hdfs_target_dir}/{snapshot_name}"
+	print(
+		f"Attempting HDFS upload for {topic_suffix}: {hdfs_target_path} ({len(payload)} records)",
+		flush=True,
+	)
 	try:
 		client.makedirs(hdfs_target_dir)
-		with open(local_file, "rb") as handle:
-			client.write(f"{hdfs_target_dir}/{snapshot_name}", handle, overwrite=True)
+		client.write(
+			hdfs_target_path,
+			data=json.dumps(payload, ensure_ascii=False, indent=2),
+			overwrite=True,
+			encoding="utf-8",
+		)
+		print(f"Uploaded {topic_suffix} snapshot to HDFS: {hdfs_target_path}", flush=True)
 	except Exception as exc:
 		_HDFS_REMOTE_DISABLED = True
-		print(f"Warning: HDFS client failed ({exc}); using local fallback only.", flush=True)
+		print(
+			f"Warning: HDFS upload failed for {topic_suffix} ({hdfs_target_path}): {exc}; using local fallback only.",
+			flush=True,
+		)
 
 
 def consume_topic(topic: str, topic_suffix: str, queue: Queue[dict[str, Any]]) -> None:
@@ -168,6 +171,13 @@ def flush_buffers(buffers: dict[str, list[dict[str, Any]]]) -> None:
 
 
 def main() -> None:
+	print(
+		"HDFS mode: "
+		f"{'enabled' if ENABLE_HDFS_REMOTE else 'disabled'}; "
+		f"endpoint={resolved_hdfs_web_url() if ENABLE_HDFS_REMOTE else 'local fallback only'}; "
+		f"namenode={HDFS_NAMENODE_HOST}:{HDFS_NAMENODE_PORT}",
+		flush=True,
+	)
 	ensure_hdfs_dirs()
 	queue: Queue[dict[str, Any]] = Queue()
 	buffers: dict[str, list[dict[str, Any]]] = defaultdict(list)
