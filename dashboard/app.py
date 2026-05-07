@@ -48,6 +48,18 @@ def load_json(path: Path, default):
 		return default
 
 
+def detect_data_mode() -> str:
+	has_main = SPARK_RESULTS_PATH.exists()
+	has_fallback = SPARK_RESULTS_FALLBACK_PATH.exists()
+	if has_main and not has_fallback:
+		return "HDFS"
+	if has_main and has_fallback:
+		main_mtime = SPARK_RESULTS_PATH.stat().st_mtime
+		fallback_mtime = SPARK_RESULTS_FALLBACK_PATH.stat().st_mtime
+		return "HDFS" if main_mtime >= fallback_mtime else "Local-first"
+	return "Local-first"
+
+
 def read_dashboard_payload() -> dict:
 	spark_results = load_json(SPARK_RESULTS_PATH, {})
 	if not spark_results:
@@ -67,13 +79,13 @@ def index():
 @app.route("/api/data")
 def api_data():
 	payload = read_dashboard_payload()
-	payload["mode"] = "HDFS" if ENABLE_HDFS_REMOTE else "Local-first"
+	payload["mode"] = detect_data_mode()
 	return jsonify(payload)
 
 
 @app.route("/api/status")
 def api_status():
-	return jsonify({"mode": "HDFS" if ENABLE_HDFS_REMOTE else "Local-first"})
+	return jsonify({"mode": detect_data_mode()})
 
 
 @app.route("/assets/<path:filename>")

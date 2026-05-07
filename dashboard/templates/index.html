@@ -171,6 +171,54 @@
         border: 1px solid rgba(255, 255, 255, 0.07);
         color: var(--muted);
         max-width: 420px;
+        position: relative;
+      }
+      .search-suggestions {
+        position: absolute;
+        top: calc(100% - 1px);
+        left: 0;
+        right: 0;
+        min-width: 200px;
+        background: #141820;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: none;
+        border-radius: 0 0 14px 14px;
+        padding: 4px 0;
+        margin: 0;
+        list-style: none;
+        z-index: 200;
+        display: none;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      }
+      [data-theme="light"] .search-suggestions {
+        background: #ffffff;
+        border-color: rgba(20, 24, 28, 0.18);
+      }
+      .search-suggestions.open { display: block; }
+      .topbar-search.search-open {
+        border-radius: 14px 14px 0 0;
+        border-bottom-color: transparent;
+      }
+      .search-suggestion-item {
+        padding: 8px 14px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .search-suggestion-item:hover,
+      .search-suggestion-item.active {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--accent);
+      }
+      .search-suggestion-empty {
+        padding: 8px 14px;
+        font-size: 0.82rem;
+        color: var(--muted);
+        font-style: italic;
       }
       [data-theme="light"] .topbar-search {
         background: rgba(20, 24, 28, 0.04);
@@ -292,7 +340,7 @@
       .ticker-move {
         display: flex;
         align-items: center;
-        gap: 24px;
+        gap: 0;
         width: max-content;
         will-change: transform;
         animation: ticker-scroll 40s linear infinite;
@@ -302,6 +350,7 @@
         align-items: center;
         gap: 24px;
         white-space: nowrap;
+        padding-right: 24px;
       }
       .ticker-item {
         display: inline-flex;
@@ -739,7 +788,8 @@
               d="M10.5 3a7.5 7.5 0 1 1 0 15 7.5 7.5 0 0 1 0-15m0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11m8.78 13.36 2.36 2.36-1.42 1.42-2.36-2.36a9 9 0 0 1-1.6 1.13l-.38-.92a8 8 0 0 0 2.02-1.63Z"
             />
           </svg>
-          <input type="text" placeholder="Cari Sesuatu..." aria-label="Cari" />
+          <input type="text" placeholder="Cari saham..." aria-label="Cari saham" autocomplete="off" />
+          <ul class="search-suggestions" id="search-suggestions" role="listbox"></ul>
         </div>
         <nav class="topbar-nav">
           <a href="#" role="button" data-tab-target="spark-tab" class="active">Spark</a>
@@ -851,6 +901,11 @@
       const rssPanel = document.getElementById('rss-panel');
       const themeToggle = document.getElementById('theme-toggle');
       const searchInput = document.querySelector('.topbar-search input');
+      const searchSuggestions = document.getElementById('search-suggestions');
+      const searchWrapper = searchInput ? searchInput.closest('.topbar-search') : null;
+      const FALLBACK_SYMBOLS = ['BBCA', 'BBRI', 'TLKM', 'ASII', 'BMRI'];
+      let availableSymbols = [...FALLBACK_SYMBOLS];
+      let suggestionActiveIndex = -1;
       const tickerPrimary = document.getElementById('ticker-primary');
       const tickerSecondary = document.getElementById('ticker-secondary');
       const tabButtons = Array.from(document.querySelectorAll('[data-tab-target]'));
@@ -894,6 +949,16 @@
           volumeChart?.resize();
           companyChart?.resize();
         }, 0);
+        if (tabId === 'api-tab' || tabId === 'rss-tab') {
+          const hero = document.querySelector('.hero');
+          if (hero) {
+            const topbar = document.querySelector('.topbar');
+            const ticker = document.querySelector('.ticker');
+            const offset = (topbar?.offsetHeight || 0) + (ticker?.offsetHeight || 0);
+            const top = hero.getBoundingClientRect().top + window.scrollY - offset;
+            window.scrollTo({ top, behavior: 'smooth' });
+          }
+        }
       }
 
       tabButtons.forEach((button) => {
@@ -1309,13 +1374,10 @@
           return `<a class="ticker-item ticker-item-link" href="/stock/${symbol}"><span class="symbol">${symbol}</span><span class="price">${price}</span><span class="delta ${deltaClass}">${deltaText}</span></a>`;
         });
         const singleMarkup = snapshot.join('');
-        tickerPrimary.innerHTML = singleMarkup;
-        requestAnimationFrame(() => {
-          const copies = Math.ceil(window.innerWidth / (tickerPrimary.scrollWidth || 1)) + 1;
-          const markup = copies > 1 ? singleMarkup.repeat(copies) : singleMarkup;
-          tickerPrimary.innerHTML = markup;
-          tickerSecondary.innerHTML = markup;
-        });
+        const copies = Math.max(1, Math.ceil(window.innerWidth / Math.max(snapshot.length * 140, 1))) + 1;
+        const markup = singleMarkup.repeat(copies);
+        tickerPrimary.innerHTML = markup;
+        tickerSecondary.innerHTML = markup;
       }
 
       function updatePulseChart(items) {
@@ -1390,9 +1452,34 @@
         });
       }
 
+      const RSS_CACHE_KEY = 'rss-article-cache';
+      const RSS_TTL_MS = 24 * 60 * 60 * 1000;
+
+      function mergeAndCacheRss(incoming) {
+        let cached = [];
+        try { cached = JSON.parse(localStorage.getItem(RSS_CACHE_KEY) || '[]'); } catch {}
+        const seen = new Map(cached.map((x) => [x.item_id || x.link, x]));
+        for (const item of (incoming || [])) {
+          const key = item.item_id || item.link;
+          if (key) seen.set(key, item);
+        }
+        const cutoff = Date.now() - RSS_TTL_MS;
+        const merged = [...seen.values()]
+          .filter((item) => {
+            const ts = item.timestamp ? new Date(item.timestamp).getTime() : Date.now();
+            return ts >= cutoff;
+          })
+          .sort((a, b) => {
+            const ta = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+            const tb = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+            return tb - ta;
+          });
+        try { localStorage.setItem(RSS_CACHE_KEY, JSON.stringify(merged)); } catch {}
+        return merged;
+      }
+
       function renderRss(items) {
         const list = (items || [])
-          .slice(0, 8)
           .map(
             (item) => {
               const imageUrl = extractImageUrl(item.summary || '');
@@ -1421,8 +1508,9 @@
           const data = await response.json();
           renderSpark(data.spark || {});
           renderApi(data.live_api || []);
-          renderRss(data.live_rss || []);
-          applySearch(currentQuery);
+          renderRss(mergeAndCacheRss(data.live_rss || []));
+          const fromLive = [...new Set((data.live_api || []).map((item) => item.symbol || item.ticker).filter(Boolean))];
+          availableSymbols = [...new Set([...FALLBACK_SYMBOLS, ...fromLive])];
 
           const now = new Date();
           statusText.textContent = 'Online';
@@ -1441,11 +1529,92 @@
       refreshData();
       setInterval(refreshData, 30000);
 
-      if (searchInput) {
-        searchInput.addEventListener('input', (event) => {
-          currentQuery = event.target.value;
-          applySearch(currentQuery);
+      function fuzzyScore(query, target) {
+        const q = query.toUpperCase();
+        const t = target.toUpperCase();
+        if (t === q) return 100;
+        if (t.startsWith(q)) return 80;
+        if (t.includes(q)) return 60;
+        let qi = 0;
+        for (let i = 0; i < t.length && qi < q.length; i++) {
+          if (t[i] === q[qi]) qi++;
+        }
+        return qi === q.length ? 30 + qi * 5 : 0;
+      }
+
+      function getMatches(query) {
+        if (!query) return [...availableSymbols];
+        return availableSymbols
+          .map((sym) => ({ sym, score: fuzzyScore(query, sym) }))
+          .filter((x) => x.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .map((x) => x.sym);
+      }
+
+      function closeSuggestions() {
+        if (searchSuggestions) searchSuggestions.classList.remove('open');
+        if (searchWrapper) searchWrapper.classList.remove('search-open');
+        suggestionActiveIndex = -1;
+      }
+
+      function navigateToStock(symbol) {
+        if (symbol) window.location.href = `/stock/${symbol.trim().toUpperCase()}`;
+      }
+
+      function renderSuggestions(matches, query) {
+        if (!searchSuggestions) return;
+        if (!matches.length) {
+          searchSuggestions.innerHTML = `<li class="search-suggestion-empty">Tidak ada saham yang cocok dengan "${query || ''}"</li>`;
+          searchSuggestions.classList.add('open');
+          if (searchWrapper) searchWrapper.classList.add('search-open');
+          return;
+        }
+        searchSuggestions.innerHTML = matches
+          .map((sym) => `<li class="search-suggestion-item" role="option" data-symbol="${sym}">${sym}</li>`)
+          .join('');
+        searchSuggestions.classList.add('open');
+        if (searchWrapper) searchWrapper.classList.add('search-open');
+        suggestionActiveIndex = -1;
+        searchSuggestions.querySelectorAll('.search-suggestion-item').forEach((item) => {
+          item.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            navigateToStock(item.dataset.symbol);
+          });
         });
+      }
+
+      if (searchInput) {
+        searchInput.addEventListener('focus', () => {
+          renderSuggestions(getMatches(searchInput.value.trim()), searchInput.value.trim());
+        });
+
+        searchInput.addEventListener('input', (event) => {
+          const q = event.target.value.trim();
+          renderSuggestions(getMatches(q), q);
+        });
+
+        searchInput.addEventListener('keydown', (event) => {
+          const items = searchSuggestions ? Array.from(searchSuggestions.querySelectorAll('.search-suggestion-item')) : [];
+          if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            suggestionActiveIndex = Math.min(suggestionActiveIndex + 1, items.length - 1);
+            items.forEach((el, i) => el.classList.toggle('active', i === suggestionActiveIndex));
+          } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            suggestionActiveIndex = Math.max(suggestionActiveIndex - 1, -1);
+            items.forEach((el, i) => el.classList.toggle('active', i === suggestionActiveIndex));
+          } else if (event.key === 'Enter') {
+            event.preventDefault();
+            const active = items.find((el) => el.classList.contains('active'));
+            const sym = active ? active.dataset.symbol : (items[0]?.dataset.symbol || searchInput.value.trim());
+            navigateToStock(sym);
+          } else if (event.key === 'Escape') {
+            closeSuggestions();
+            searchInput.blur();
+          }
+        });
+
+        searchInput.addEventListener('blur', () => setTimeout(closeSuggestions, 150));
       }
 
       if (themeToggle) {
