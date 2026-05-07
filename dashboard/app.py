@@ -9,15 +9,15 @@ import yfinance as yf
 
 
 
-BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = BASE_DIR / "data"
-ASSETS_DIR = BASE_DIR / "assets"
-SPARK_RESULTS_PATH = DATA_DIR / "spark_results.json"
+BASE_DIR                    = Path(__file__).resolve().parent
+DATA_DIR                    = BASE_DIR / "data"
+ASSETS_DIR                  = BASE_DIR / "assets"
+SPARK_RESULTS_PATH          = DATA_DIR / "spark_results.json"
 SPARK_RESULTS_FALLBACK_PATH = DATA_DIR / "spark_results_hdfs_fallback.json"
-LIVE_API_PATH = DATA_DIR / "live_api.json"
-LIVE_RSS_PATH = DATA_DIR / "live_rss.json"
+LIVE_API_PATH               = DATA_DIR / "live_api.json"
+LIVE_RSS_PATH               = DATA_DIR / "live_rss.json"
 
-ENABLE_HDFS_REMOTE = os.getenv("ENABLE_HDFS_REMOTE", "").lower() in {"1", "true", "yes"}
+ENABLE_HDFS_REMOTE = True
 
 app = Flask(__name__)
 

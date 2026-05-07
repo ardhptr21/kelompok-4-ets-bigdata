@@ -988,7 +988,7 @@
     </div>
     <div class="ticker">
       <div class="ticker-track">
-        <div class="ticker-label"><span class="pulse"></span> Live Tape</div>
+        <div class="ticker-label"><span class="pulse"></span> Live</div>
         <div class="ticker-move">
           <div class="ticker-wrap" id="ticker-primary"></div>
           <div class="ticker-wrap" id="ticker-secondary" aria-hidden="true"></div>
@@ -1023,7 +1023,7 @@
 
       <section class="card tab-content active" id="spark-tab">
         <div class="section-title">
-          <h2>Hasil Spark</h2>
+          <h2>Market View</h2>
           <span class="tag" id="spark-status">Ready</span>
         </div>
         <div id="spark-panel" class="spark-grid"></div>
@@ -1313,6 +1313,12 @@
         );
         const returnLabels = sortedReturn.map((row) => row.symbol || '-');
         const returnValues = sortedReturn.map((row) => Number(row.return_pct) || 0);
+        const posBg = 'rgba(70, 214, 196, 0.7)';
+        const posBorder = 'rgba(70, 214, 196, 1)';
+        const negBg = 'rgba(255, 107, 107, 0.78)';
+        const negBorder = 'rgba(255, 107, 107, 1)';
+        const returnBackgrounds = returnValues.map((v) => (v >= 0 ? posBg : negBg));
+        const returnBorders = returnValues.map((v) => (v >= 0 ? posBorder : negBorder));
 
         const hourlySorted = [...hourlySummary].sort(
           (a, b) => (Number(a.hour) || 0) - (Number(b.hour) || 0),
@@ -1331,8 +1337,8 @@
               {
                 label: 'Return %',
                 data: returnValues,
-                backgroundColor: 'rgba(70, 214, 196, 0.7)',
-                borderColor: 'rgba(70, 214, 196, 1)',
+                backgroundColor: returnBackgrounds,
+                borderColor: returnBorders,
                 borderWidth: 1,
               },
             ],
