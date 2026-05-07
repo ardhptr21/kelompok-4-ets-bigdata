@@ -27,6 +27,8 @@ HDFS_API_PATH = f"{HDFS_BASE_PATH}/api"
 HDFS_RSS_PATH = f"{HDFS_BASE_PATH}/rss"
 HDFS_RESULT_PATH = f"{HDFS_BASE_PATH}/hasil"
 DEFAULT_FS = os.getenv("SPARK_DEFAULT_FS", "hdfs://localhost:8020")
+HDFS_USER = os.getenv("HDFS_USER", "hadoop")
+os.environ.setdefault("HADOOP_USER_NAME", HDFS_USER)
 
 STOPWORDS = {"dan", "yang", "di", "ke", "dari", "untuk", "dengan", "pada", "atau", "the", "a", "an"}
 COMPANY_TERMS = {

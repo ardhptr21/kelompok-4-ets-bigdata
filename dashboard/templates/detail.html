@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ symbol }} Detail</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Sora:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0b0d10;
+        --panel: rgba(20, 23, 28, 0.96);
+        --panel-border: rgba(255, 255, 255, 0.08);
+        --text: #f2f4f7;
+        --muted: #b2b9c3;
+        --accent: #5fe2d2;
+        --accent-strong: #39bba9;
+        --danger: #ff6b6b;
+        --good: #59e0b1;
+        --warning: #f7c27c;
+        --grid-line: rgba(255, 255, 255, 0.08);
+        --topbar-bg: rgba(12, 14, 18, 0.96);
+      }
+      [data-theme="light"] {
+        --bg: #f4f6f8;
+        --panel: rgba(248, 250, 252, 0.98);
+        --panel-border: rgba(20, 24, 28, 0.2);
+        --text: #14181c;
+        --muted: #42505c;
+        --accent: #0f8b77;
+        --accent-strong: #0a6f5f;
+        --danger: #c94343;
+        --good: #0f9166;
+        --warning: #b8732b;
+        --grid-line: rgba(20, 24, 28, 0.18);
+        --topbar-bg: rgba(255, 255, 255, 0.94);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Sora", system-ui, sans-serif;
+        color: var(--text);
+        background-color: var(--bg);
+        min-height: 100vh;
+        cursor: url('/assets/cursor-48.png') 8 8, auto;
+      }
+      a,
+      button,
+      input {
+        cursor: url('/assets/cursor-48.png') 8 8, pointer;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(var(--grid-line) 1px, transparent 1px),
+          linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+        background-size: 64px 64px;
+        opacity: 0.55;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 3;
+        background: var(--topbar-bg);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(16px);
+      }
+      .topbar-inner {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 12px 24px;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 18px;
+      }
+      .topbar-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .topbar-brand img {
+        height: 36px;
+        width: auto;
+        display: block;
+      }
+      .topbar-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .back-link {
+        color: var(--muted);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .back-link:hover {
+        color: var(--text);
+      }
+      .theme-toggle {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 64px;
+        height: 30px;
+        padding: 0 6px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.05);
+        cursor: pointer;
+      }
+      .theme-toggle .track-icon {
+        width: 14px;
+        height: 14px;
+        fill: var(--muted);
+      }
+      .theme-toggle .thumb {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--text);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+        transition: transform 0.2s ease;
+      }
+      .theme-toggle.is-light {
+        border-color: rgba(20, 24, 28, 0.18);
+        background: rgba(20, 24, 28, 0.06);
+      }
+      .theme-toggle.is-light .thumb {
+        transform: translateX(34px);
+        background: var(--accent);
+      }
+      .theme-toggle.is-light .track-icon.sun {
+        fill: var(--accent-strong);
+      }
+      .theme-toggle.is-light .track-icon.moon {
+        fill: var(--muted);
+      }
+      .wrap {
+        position: relative;
+        z-index: 1;
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 24px;
+        display: grid;
+        grid-template-columns: 2.2fr 1fr;
+        gap: 18px;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 16px 42px rgba(0, 0, 0, 0.28);
+      }
+      [data-theme="light"] .panel {
+        box-shadow: 0 12px 28px rgba(20, 24, 28, 0.12);
+      }
+      .hero {
+        grid-column: span 2;
+      }
+      .hero h1 {
+        margin: 0 0 6px;
+        font-size: clamp(1.8rem, 3vw, 2.6rem);
+      }
+      .hero .meta {
+        color: var(--muted);
+        margin-bottom: 12px;
+      }
+      .hero-stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .stat {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 16px;
+        padding: 12px;
+      }
+      [data-theme="light"] .stat {
+        background: rgba(20, 24, 28, 0.03);
+        border-color: rgba(20, 24, 28, 0.16);
+      }
+      .stat-label {
+        color: var(--muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+      .stat-value {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-weight: 600;
+        font-size: 1.15rem;
+      }
+      .chart {
+        height: 320px;
+      }
+      .chart canvas {
+        width: 100% !important;
+        height: 100% !important;
+      }
+      .side-list {
+        display: grid;
+        gap: 12px;
+      }
+      .side-item {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 16px;
+        padding: 12px;
+      }
+      [data-theme="light"] .side-item {
+        background: rgba(20, 24, 28, 0.03);
+        border-color: rgba(20, 24, 28, 0.16);
+      }
+      .side-title {
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .value-up {
+        color: var(--good);
+      }
+      .value-down {
+        color: var(--danger);
+      }
+      @media (max-width: 1024px) {
+        .wrap {
+          grid-template-columns: 1fr;
+        }
+        .hero {
+          grid-column: span 1;
+        }
+      }
+    </style>
+  </head>
+  <body data-symbol="{{ symbol }}">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="topbar-brand">
+          <img src="/assets/logo-name.png" alt="sah4m!meter" />
+        </div>
+        <div></div>
+        <div class="topbar-actions">
+          <a class="back-link" href="/">Back to Dashboard</a>
+          <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false" aria-label="Toggle theme">
+            <svg class="track-icon sun" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 4.25a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V5a.75.75 0 0 1 .75-.75Zm0 12.5a.75.75 0 0 1 .75.75V19a.75.75 0 0 1-1.5 0v-1.5a.75.75 0 0 1 .75-.75Zm7.75-4.75a.75.75 0 0 1 .75.75.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5Zm-12.5 0a.75.75 0 0 1 .75.75.75.75 0 0 1-.75.75H5a.75.75 0 0 1 0-1.5h1.5ZM17.66 6.34a.75.75 0 0 1 1.06 1.06l-1.06 1.06a.75.75 0 1 1-1.06-1.06l1.06-1.06Zm-10.6 10.6a.75.75 0 0 1 1.06 1.06l-1.06 1.06a.75.75 0 1 1-1.06-1.06l1.06-1.06Zm10.6 2.12a.75.75 0 0 1-1.06-1.06l1.06-1.06a.75.75 0 1 1 1.06 1.06l-1.06 1.06ZM7.12 7.4a.75.75 0 0 1-1.06-1.06l1.06-1.06a.75.75 0 0 1 1.06 1.06L7.12 7.4ZM12 8.25a3.75 3.75 0 1 1 0 7.5 3.75 3.75 0 0 1 0-7.5Z" />
+            </svg>
+            <span class="thumb"></span>
+            <svg class="track-icon moon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M14.5 2.5a.75.75 0 0 1 .66 1.1 7.25 7.25 0 0 0 7.24 10.63.75.75 0 0 1 .36 1.4 9.5 9.5 0 1 1-8.6-13.13.75.75 0 0 1 .34 0Z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <main class="wrap">
+      <section class="panel hero">
+        <h1 id="stock-title">{{ symbol }}</h1>
+        <div class="meta" id="stock-subtitle">Loading price...</div>
+        <div class="hero-stats" id="hero-stats"></div>
+      </section>
+
+      <section class="panel">
+        <div class="side-title">Price Movement</div>
+        <div class="chart"><canvas id="price-chart"></canvas></div>
+      </section>
+
+      <section class="panel">
+        <div class="side-title">Volume Flow</div>
+        <div class="chart"><canvas id="volume-chart"></canvas></div>
+      </section>
+
+      <section class="panel">
+        <div class="side-title">Returns (%)</div>
+        <div class="chart"><canvas id="return-chart"></canvas></div>
+      </section>
+
+      <aside class="panel">
+        <div class="side-title">Quick Stats</div>
+        <div class="side-list" id="side-stats"></div>
+      </aside>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+      const symbol = document.body.dataset.symbol;
+      const heroStats = document.getElementById('hero-stats');
+      const sideStats = document.getElementById('side-stats');
+      const stockTitle = document.getElementById('stock-title');
+      const stockSubtitle = document.getElementById('stock-subtitle');
+      const priceCanvas = document.getElementById('price-chart');
+      const volumeCanvas = document.getElementById('volume-chart');
+      const returnCanvas = document.getElementById('return-chart');
+      const themeToggle = document.getElementById('theme-toggle');
+
+      function applyTheme(theme) {
+        if (theme === 'light') {
+          document.body.setAttribute('data-theme', 'light');
+          themeToggle?.classList.add('is-light');
+          themeToggle?.setAttribute('aria-pressed', 'true');
+        } else {
+          document.body.removeAttribute('data-theme');
+          themeToggle?.classList.remove('is-light');
+          themeToggle?.setAttribute('aria-pressed', 'false');
+        }
+      }
+
+      if (themeToggle) {
+        const savedTheme = localStorage.getItem('dashboard-theme');
+        applyTheme(savedTheme === 'light' ? 'light' : 'dark');
+        themeToggle.addEventListener('click', () => {
+          const nextTheme = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+          localStorage.setItem('dashboard-theme', nextTheme);
+          applyTheme(nextTheme);
+        });
+      }
+
+      function formatNumber(value) {
+        if (value === null || value === undefined || Number.isNaN(Number(value))) {
+          return '-';
+        }
+        return Number(value).toLocaleString('id-ID');
+      }
+
+      async function loadDetail() {
+        const response = await fetch(`/api/stock/${symbol}`);
+        const data = await response.json();
+
+        if (data.error) {
+          stockSubtitle.textContent = `Failed to load data: ${data.error}`;
+          return;
+        }
+
+        const changeClass = data.change_pct >= 0 ? 'value-up' : 'value-down';
+        const changeText = `${data.change_pct.toFixed(2)}%`;
+        stockTitle.textContent = `${data.company} (${data.symbol})`;
+        stockSubtitle.innerHTML = `Last price <strong>${formatNumber(data.close)}</strong> <span class="${changeClass}">${changeText}</span>`;
+
+        heroStats.innerHTML = `
+          <div class="stat">
+            <div class="stat-label">Open</div>
+            <div class="stat-value">${formatNumber(data.open)}</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">High</div>
+            <div class="stat-value">${formatNumber(data.high)}</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Low</div>
+            <div class="stat-value">${formatNumber(data.low)}</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Close</div>
+            <div class="stat-value">${formatNumber(data.close)}</div>
+          </div>
+        `;
+
+        sideStats.innerHTML = `
+          <div class="side-item">
+            <div class="side-title">Ticker</div>
+            <div class="muted">${data.ticker}</div>
+          </div>
+          <div class="side-item">
+            <div class="side-title">Change</div>
+            <div class="${changeClass}">${changeText}</div>
+          </div>
+          <div class="side-item">
+            <div class="side-title">Points</div>
+            <div class="muted">${formatNumber(data.close - data.open)}</div>
+          </div>
+        `;
+
+        const labels = data.timestamps.map((value) => new Date(value).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }));
+        const prices = data.prices;
+        const volumes = data.volumes;
+        const returns = prices.map((value, index) => {
+          if (index === 0) return 0;
+          const base = prices[0] || 1;
+          return ((value - base) / base) * 100;
+        });
+
+        new Chart(priceCanvas, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Price',
+                data: prices,
+                borderColor: 'rgba(95, 226, 210, 1)',
+                backgroundColor: 'rgba(95, 226, 210, 0.16)',
+                tension: 0.35,
+                fill: true,
+                pointRadius: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#e9eefb' } } },
+            scales: {
+              x: { ticks: { color: '#98a5c1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+              y: { ticks: { color: '#98a5c1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+            },
+          },
+        });
+
+        new Chart(volumeCanvas, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Volume',
+                data: volumes,
+                backgroundColor: 'rgba(95, 226, 210, 0.4)',
+                borderColor: 'rgba(95, 226, 210, 0.8)',
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#e9eefb' } } },
+            scales: {
+              x: { ticks: { color: '#98a5c1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+              y: { ticks: { color: '#98a5c1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+            },
+          },
+        });
+
+        new Chart(returnCanvas, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Return %',
+                data: returns,
+                borderColor: 'rgba(255, 107, 107, 1)',
+                backgroundColor: 'rgba(255, 107, 107, 0.16)',
+                tension: 0.35,
+                fill: true,
+                pointRadius: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#e9eefb' } } },
+            scales: {
+              x: { ticks: { color: '#98a5c1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+              y: { ticks: { color: '#98a5c1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+            },
+          },
+        });
+      }
+
+      loadDetail();
+    </script>
+  </body>
+</html>
