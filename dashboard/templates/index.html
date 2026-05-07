@@ -289,12 +289,19 @@
         box-shadow: 0 0 12px rgba(70, 214, 196, 0.7);
         animation: pulse 1.8s ease-in-out infinite;
       }
+      .ticker-move {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        width: max-content;
+        will-change: transform;
+        animation: ticker-scroll 40s linear infinite;
+      }
       .ticker-wrap {
         display: flex;
         align-items: center;
         gap: 24px;
         white-space: nowrap;
-        animation: ticker-scroll 28s linear infinite;
       }
       .ticker-item {
         display: inline-flex;
@@ -753,8 +760,10 @@
     <div class="ticker">
       <div class="ticker-track">
         <div class="ticker-label"><span class="pulse"></span> Live Tape</div>
-        <div class="ticker-wrap" id="ticker-primary"></div>
-        <div class="ticker-wrap" id="ticker-secondary" aria-hidden="true"></div>
+        <div class="ticker-move">
+          <div class="ticker-wrap" id="ticker-primary"></div>
+          <div class="ticker-wrap" id="ticker-secondary" aria-hidden="true"></div>
+        </div>
       </div>
       <div class="ticker-shadow"></div>
     </div>
@@ -862,7 +871,14 @@
       let volumeChart = null;
       let companyChart = null;
       let pulseChart = null;
-      const marketPulseSeries = [];
+      const PULSE_KEY = 'market-pulse-series';
+      function loadPulseSeries() {
+        try { return JSON.parse(localStorage.getItem(PULSE_KEY) || '[]'); } catch { return []; }
+      }
+      function savePulseSeries(series) {
+        try { localStorage.setItem(PULSE_KEY, JSON.stringify(series)); } catch {}
+      }
+      const marketPulseSeries = loadPulseSeries();
       let currentQuery = '';
 
       function activateTab(tabId) {
@@ -1290,17 +1306,16 @@
           const pct = Number(item.change_24h_pct);
           const deltaClass = Number.isNaN(pct) ? 'flat' : pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat';
           const deltaText = Number.isNaN(pct) ? '-' : `${pct.toFixed(2)}%`;
-          return `
-            <a class="ticker-item ticker-item-link" href="/stock/${symbol}">
-              <span class="symbol">${symbol}</span>
-              <span class="price">${price}</span>
-              <span class="delta ${deltaClass}">${deltaText}</span>
-            </a>
-          `;
+          return `<a class="ticker-item ticker-item-link" href="/stock/${symbol}"><span class="symbol">${symbol}</span><span class="price">${price}</span><span class="delta ${deltaClass}">${deltaText}</span></a>`;
         });
-        const markup = snapshot.join('');
-        tickerPrimary.innerHTML = markup;
-        tickerSecondary.innerHTML = markup;
+        const singleMarkup = snapshot.join('');
+        tickerPrimary.innerHTML = singleMarkup;
+        requestAnimationFrame(() => {
+          const copies = Math.ceil(window.innerWidth / (tickerPrimary.scrollWidth || 1)) + 1;
+          const markup = copies > 1 ? singleMarkup.repeat(copies) : singleMarkup;
+          tickerPrimary.innerHTML = markup;
+          tickerSecondary.innerHTML = markup;
+        });
       }
 
       function updatePulseChart(items) {
@@ -1317,6 +1332,7 @@
         if (marketPulseSeries.length > 24) {
           marketPulseSeries.shift();
         }
+        savePulseSeries(marketPulseSeries);
 
         const labels = marketPulseSeries.map((point) => point.label);
         const values = marketPulseSeries.map((point) => Number(point.value) || 0);
