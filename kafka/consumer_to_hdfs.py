@@ -18,24 +18,23 @@ except Exception:  # pragma: no cover - optional dependency fallback
 	InsecureClient = None
 
 
-API_TOPIC = os.getenv("API_TOPIC", "saham-api")
-RSS_TOPIC = os.getenv("RSS_TOPIC", "saham-rss")
-BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
-GROUP_ID = os.getenv("CONSUMER_GROUP_ID", "saham-to-hdfs")
-FLUSH_SECONDS = int(os.getenv("CONSUMER_FLUSH_SECONDS", "1"))
-HDFS_BASE = os.getenv("HDFS_BASE_PATH", "/data/saham")
-HDFS_NAMENODE_HOST = os.getenv("HDFS_NAMENODE_HOST", "localhost")
-HDFS_WEB_PORT = os.getenv("HDFS_WEB_PORT", "9870")
-HDFS_WEB_URL = os.getenv("HDFS_WEB_URL")
-HDFS_USER = os.getenv("HDFS_USER", "hadoop")
-HDFS_NAMENODE_PORT = os.getenv("HDFS_NAMENODE_PORT", "8020")
-ENABLE_HDFS_REMOTE = os.getenv("ENABLE_HDFS_REMOTE", "").lower() in {"1", "true", "yes"}
+API_TOPIC          = "saham-api"
+RSS_TOPIC          = "saham-rss"
+BOOTSTRAP          = "localhost:9092"
+GROUP_ID           = "saham-to-hdfs"
+FLUSH_SECONDS      = 1
+HDFS_BASE          = "/data/saham"
+HDFS_NAMENODE_HOST = "localhost"
+HDFS_WEB_PORT      = 9870
+HDFS_USER          = "hadoop"
+HDFS_NAMENODE_PORT = 8020
+ENABLE_HDFS_REMOTE = True
 
-LOCAL_DATA_DIR = Path(os.getenv("LOCAL_DATA_DIR", "dashboard/data"))
+LOCAL_DATA_DIR = Path("dashboard/data")
 LOCAL_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 _HDFS_REMOTE_DISABLED = False
-_HDFS_DIRS_ATTEMPTED = False
+_HDFS_DIRS_ATTEMPTED  = False
 
 
 def disable_hdfs_remote() -> None:
@@ -52,8 +51,6 @@ def timestamp_label() -> str:
 
 
 def resolved_hdfs_web_url() -> str:
-	if HDFS_WEB_URL:
-		return HDFS_WEB_URL
 	return f"http://{HDFS_NAMENODE_HOST}:{HDFS_WEB_PORT}"
 
 
@@ -88,7 +85,7 @@ def ensure_hdfs_dirs() -> None:
 	_HDFS_DIRS_ATTEMPTED = True
 
 
-def hdfs_client() -> InsecureClient | None:
+def hdfs_client() -> InsecureClient | None: # type: ignore
 	global _HDFS_REMOTE_DISABLED
 	if _HDFS_REMOTE_DISABLED:
 		return None
