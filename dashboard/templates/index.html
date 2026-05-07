@@ -4,48 +4,98 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SahamMeter Dashboard</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Sora:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
       :root {
-        --bg: #08111f;
-        --panel: rgba(8, 17, 31, 0.78);
-        --panel-border: rgba(122, 162, 255, 0.18);
-        --text: #e9eefb;
-        --muted: #98a5c1;
-        --accent: #4fd1c5;
+        --bg: #0b0d10;
+        --panel: rgba(20, 23, 28, 0.96);
+        --panel-border: rgba(255, 255, 255, 0.08);
+        --text: #f2f4f7;
+        --muted: #b2b9c3;
+        --accent: #5fe2d2;
+        --accent-strong: #39bba9;
         --danger: #ff6b6b;
-        --good: #40d39f;
+        --good: #59e0b1;
+        --warning: #f7c27c;
+        --grid-line: rgba(255, 255, 255, 0.12);
+        --topbar-bg: rgba(12, 14, 18, 0.96);
+        --ticker-bg: rgba(13, 16, 20, 0.94);
+        --ticker-shadow: rgba(11, 13, 16, 0.96);
+      }
+      [data-theme="light"] {
+        --bg: #f4f6f8;
+        --panel: rgba(248, 250, 252, 0.98);
+        --panel-border: rgba(20, 24, 28, 0.2);
+        --text: #14181c;
+        --muted: #42505c;
+        --accent: #0f8b77;
+        --accent-strong: #0a6f5f;
+        --danger: #c94343;
+        --good: #0f9166;
+        --warning: #b8732b;
+        --grid-line: rgba(20, 24, 28, 0.18);
+        --topbar-bg: rgba(255, 255, 255, 0.94);
+        --ticker-bg: rgba(245, 247, 250, 0.96);
+        --ticker-shadow: rgba(244, 246, 248, 0.98);
       }
       * {
         box-sizing: border-box;
       }
       body {
         margin: 0;
-        font-family: Inter, system-ui, sans-serif;
+        font-family: "Sora", system-ui, sans-serif;
         color: var(--text);
-        background:
-          radial-gradient(circle at top left, rgba(124, 147, 255, 0.22), transparent 30%),
-          radial-gradient(circle at top right, rgba(79, 209, 197, 0.18), transparent 26%),
-          linear-gradient(180deg, #08111f 0%, #0b1730 100%);
+        background-color: var(--bg);
         min-height: 100vh;
+        cursor: url('/assets/cursor-48.png') 8 8, auto;
+      }
+      a,
+      button,
+      input {
+        cursor: url('/assets/cursor-48.png') 8 8, pointer;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(var(--grid-line) 1px, transparent 1px),
+          linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+        background-size: 64px 64px;
+        animation: grid-drift 4s linear infinite;
+        opacity: 0.75;
+        pointer-events: none;
+        z-index: 0;
+      }
+      body::after {
+        content: none;
       }
       header {
-        padding: 32px 24px 12px;
-        max-width: 1240px;
+        position: relative;
+        z-index: 1;
+        padding: 36px 24px 12px;
+        max-width: 1280px;
         margin: 0 auto;
       }
       h1 {
-        margin: 0 0 10px;
-        font-size: clamp(2rem, 4vw, 3.5rem);
+        margin: 12px 0 10px;
+        font-size: clamp(2.1rem, 4vw, 3.6rem);
+        letter-spacing: -0.02em;
       }
       .subtitle {
         color: var(--muted);
-        max-width: 720px;
-        line-height: 1.6;
+        max-width: 760px;
+        line-height: 1.7;
       }
       .wrap {
-        max-width: 1240px;
+        position: relative;
+        z-index: 1;
+        max-width: 1280px;
         margin: 0 auto;
-        padding: 12px 24px 36px;
+        padding: 12px 24px 50px;
         display: grid;
         gap: 18px;
         grid-template-columns: repeat(12, 1fr);
@@ -54,12 +104,324 @@
         background: var(--panel);
         border: 1px solid var(--panel-border);
         border-radius: 22px;
-        padding: 20px;
-        box-shadow: 0 16px 50px rgba(0, 0, 0, 0.22);
-        backdrop-filter: blur(14px);
+        padding: 22px;
+        box-shadow: 0 16px 50px rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(16px);
+      }
+      [data-theme="light"] .card {
+        box-shadow: 0 12px 32px rgba(20, 24, 28, 0.12);
       }
       .hero {
         grid-column: span 12;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(83, 214, 196, 0.14);
+        color: var(--accent);
+        font-size: 0.84rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .badge .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--good);
+        box-shadow: 0 0 12px rgba(64, 211, 159, 0.8);
+      }
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 3;
+        background: var(--topbar-bg);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(16px);
+      }
+      .topbar-inner {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 12px 24px;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 18px;
+      }
+      .topbar-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .topbar-brand img {
+        height: 40px;
+        width: auto;
+        display: block;
+      }
+      .topbar-search {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        color: var(--muted);
+        max-width: 420px;
+      }
+      [data-theme="light"] .topbar-search {
+        background: rgba(20, 24, 28, 0.04);
+        border-color: rgba(20, 24, 28, 0.18);
+      }
+      .topbar-search input {
+        background: transparent;
+        border: none;
+        color: var(--text);
+        font-size: 0.95rem;
+        width: 100%;
+        outline: none;
+        font-family: inherit;
+      }
+      .topbar-search svg {
+        width: 18px;
+        height: 18px;
+        fill: var(--muted);
+      }
+      .topbar-nav {
+        display: inline-flex;
+        align-items: center;
+        gap: 18px;
+        font-weight: 600;
+        color: var(--muted);
+      }
+      .topbar-nav a {
+        color: inherit;
+        text-decoration: none;
+        font-size: 0.95rem;
+      }
+      .topbar-nav a.active {
+        color: var(--accent);
+      }
+      .topbar-nav a:hover {
+        color: var(--text);
+      }
+      .theme-toggle {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 64px;
+        height: 30px;
+        padding: 0 6px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text);
+        cursor: pointer;
+        transition: border-color 0.2s ease, background 0.2s ease;
+      }
+      .theme-toggle .track-icon {
+        width: 14px;
+        height: 14px;
+        fill: var(--muted);
+        transition: fill 0.2s ease;
+      }
+      .theme-toggle .thumb {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--text);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+        transition: transform 0.2s ease;
+      }
+      .theme-toggle.is-light {
+        border-color: rgba(20, 24, 28, 0.18);
+        background: rgba(20, 24, 28, 0.06);
+      }
+      .theme-toggle.is-light .thumb {
+        transform: translateX(34px);
+        background: var(--accent);
+      }
+      .theme-toggle.is-light .track-icon.sun {
+        fill: var(--accent-strong);
+      }
+      .theme-toggle.is-light .track-icon.moon {
+        fill: var(--muted);
+      }
+      .ticker {
+        position: sticky;
+        top: 56px;
+        z-index: 2;
+        background: var(--ticker-bg);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(16px);
+      }
+      .ticker-track {
+        display: flex;
+        gap: 24px;
+        align-items: center;
+        overflow: hidden;
+        padding: 10px 0;
+      }
+      .ticker-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 18px 0 22px;
+        font-weight: 600;
+        color: var(--text);
+        white-space: nowrap;
+        background: var(--ticker-bg);
+        border-right: 1px solid rgba(255, 255, 255, 0.06);
+        z-index: 1;
+      }
+      .ticker-label .pulse {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 12px rgba(70, 214, 196, 0.7);
+        animation: pulse 1.8s ease-in-out infinite;
+      }
+      .ticker-wrap {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        white-space: nowrap;
+        animation: ticker-scroll 28s linear infinite;
+      }
+      .ticker-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 0.82rem;
+        color: var(--text);
+      }
+      .ticker-item-link {
+        color: inherit;
+        text-decoration: none;
+      }
+      .ticker-item-link:hover {
+        text-decoration: none;
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+      }
+      [data-theme="light"] .ticker-item {
+        background: rgba(20, 24, 28, 0.04);
+        border-color: rgba(20, 24, 28, 0.18);
+      }
+      .ticker-item .symbol {
+        font-weight: 700;
+        letter-spacing: 0.08em;
+      }
+      .ticker-item .price {
+        color: var(--text);
+      }
+      .ticker-item .delta.up {
+        color: var(--good);
+      }
+      .ticker-item .delta.down {
+        color: var(--danger);
+      }
+      .ticker-item .delta.flat {
+        color: var(--muted);
+      }
+      .symbol-link {
+        color: inherit;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .symbol-link:hover {
+        color: var(--accent);
+      }
+      .ticker-shadow {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(
+          90deg,
+          var(--ticker-shadow) 0%,
+          rgba(11, 13, 16, 0) 12%,
+          rgba(11, 13, 16, 0) 88%,
+          var(--ticker-shadow) 100%
+        );
+      }
+      @keyframes ticker-scroll {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+      @keyframes bg-drift {
+        0% {
+          background-position: 0% 0%, 100% 0%, 0% 0%;
+        }
+        50% {
+          background-position: 10% 20%, 90% 30%, 0% 0%;
+        }
+        100% {
+          background-position: 0% 0%, 100% 0%, 0% 0%;
+        }
+      }
+      @keyframes grid-drift {
+        0% {
+          background-position: 0 0, 0 0;
+        }
+        100% {
+          background-position: 64px 64px, 64px 64px;
+        }
+      }
+      @keyframes haze-float {
+        0% {
+          transform: translate(0, 0);
+        }
+        100% {
+          transform: translate(2%, -2%);
+        }
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 0.8;
+        }
+        50% {
+          transform: scale(1.4);
+          opacity: 1;
+        }
+      }
+      .meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        margin-top: 8px;
+      }
+      .meta-card {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+      .meta-card strong {
+        color: var(--text);
+        font-weight: 600;
       }
       .kpi-grid {
         display: grid;
@@ -70,28 +432,42 @@
       .kpi {
         padding: 14px 16px;
         border-radius: 18px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+      }
+      [data-theme="light"] .kpi {
+        background: rgba(20, 24, 28, 0.03);
+        border-color: rgba(20, 24, 28, 0.16);
       }
       .kpi-label {
         color: var(--muted);
-        font-size: 0.82rem;
+        font-size: 0.78rem;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.12em;
         margin-bottom: 6px;
       }
       .kpi-value {
-        font-size: 1.3rem;
+        font-size: 1.35rem;
         font-weight: 700;
+        letter-spacing: 0.02em;
+        font-family: "JetBrains Mono", ui-monospace, monospace;
       }
       .kpi-sub {
         color: var(--muted);
-        font-size: 0.88rem;
+        font-size: 0.86rem;
         margin-top: 4px;
       }
-      .panel h2 {
-        margin-top: 0;
+      .section-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin: 0 0 8px;
+      }
+      .section-title h2 {
+        margin: 0;
         font-size: 1.1rem;
+        letter-spacing: 0.02em;
       }
       .meta {
         color: var(--muted);
@@ -108,21 +484,29 @@
         text-align: left;
       }
       th {
-        color: #cbd6f5;
-        font-size: 0.88rem;
+        color: #b8c0cb;
+        font-size: 0.78rem;
         text-transform: uppercase;
-        letter-spacing: 0.06em;
+        letter-spacing: 0.16em;
+        font-weight: 600;
       }
       .pill {
-        display: inline-block;
-        padding: 5px 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
         border-radius: 999px;
-        background: rgba(79, 209, 197, 0.12);
-        color: #8ff3e9;
-        font-size: 0.84rem;
+        background: rgba(83, 214, 196, 0.12);
+        color: var(--accent);
+        font-size: 0.82rem;
       }
       .grid-list {
         display: grid;
+        gap: 12px;
+      }
+      .spark-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 12px;
       }
       .chart-grid {
@@ -132,35 +516,58 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
       .chart-box {
-        padding: 14px;
+        padding: 16px;
         border-radius: 16px;
-        background: rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.035);
         border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      [data-theme="light"] .chart-box {
+        background: rgba(20, 24, 28, 0.03);
+        border-color: rgba(20, 24, 28, 0.14);
       }
       .chart-box canvas {
         width: 100% !important;
-        height: 280px !important;
+        height: 260px !important;
+      }
+      .pulse-legend {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 0.8rem;
+        margin-top: 6px;
+      }
+      .pulse-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
       }
       .tabs {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
-        grid-column: span 12;
+        margin-top: 16px;
       }
       .tab-button {
         appearance: none;
         border: 1px solid rgba(255, 255, 255, 0.12);
         background: rgba(255, 255, 255, 0.04);
         color: var(--muted);
-        padding: 10px 14px;
+        padding: 10px 16px;
         border-radius: 999px;
         cursor: pointer;
         transition: all 0.18s ease;
+        font-weight: 600;
       }
       .tab-button.active {
-        background: rgba(79, 209, 197, 0.16);
-        border-color: rgba(79, 209, 197, 0.45);
+        background: rgba(83, 214, 196, 0.16);
+        border-color: rgba(83, 214, 196, 0.4);
         color: var(--text);
+        box-shadow: 0 8px 20px rgba(79, 209, 197, 0.2);
       }
       .tab-content {
         grid-column: span 12;
@@ -172,10 +579,14 @@
       .item {
         padding: 14px;
         border-radius: 16px;
-        background: rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.035);
         border: 1px solid rgba(255, 255, 255, 0.06);
       }
-      .title {
+      [data-theme="light"] .item {
+        background: rgba(20, 24, 28, 0.03);
+        border-color: rgba(20, 24, 28, 0.14);
+      }
+      .item-title {
         font-weight: 600;
         margin-bottom: 6px;
       }
@@ -190,10 +601,116 @@
       .value-down {
         color: var(--danger);
       }
+      .value-flat {
+        color: var(--muted);
+      }
+      .mono {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+      }
+      .split {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+      .trend-bar {
+        height: 6px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+        margin-top: 6px;
+      }
+      .trend-bar span {
+        display: block;
+        height: 100%;
+        background: linear-gradient(90deg, rgba(70, 214, 196, 0.9), rgba(96, 126, 255, 0.9));
+      }
+      .rss-card {
+        display: grid;
+        gap: 8px;
+      }
+      .rss-item {
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        gap: 14px;
+        align-items: start;
+      }
+      .rss-thumb {
+        width: 120px;
+        height: 82px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+      }
+      [data-theme="light"] .rss-thumb {
+        background: rgba(20, 24, 28, 0.04);
+        border-color: rgba(20, 24, 28, 0.16);
+      }
+      .rss-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .rss-link {
+        color: var(--text);
+        text-decoration: none;
+      }
+      .rss-link:hover {
+        text-decoration: underline;
+      }
+      .loading {
+        color: var(--muted);
+        font-style: italic;
+      }
+      .search-hidden {
+        display: none !important;
+      }
+      .cursor-constellation {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 4;
+      }
       @media (max-width: 1080px) {
         .kpi-grid,
-        .chart-grid {
+        .chart-grid,
+        .spark-grid,
+        .split {
           grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 820px) {
+        .spark-grid,
+        .split {
+          grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+        .rss-item {
+          grid-template-columns: 1fr;
+        }
+        .rss-thumb {
+          width: 100%;
+          height: 160px;
+        }
+        .topbar-inner {
+          grid-template-columns: 1fr;
+          gap: 12px;
+        }
+        .topbar-nav {
+          flex-wrap: wrap;
+          justify-content: center;
         }
       }
       @media (max-width: 720px) {
@@ -210,59 +727,114 @@
     </style>
   </head>
   <body>
+    <canvas class="cursor-constellation" id="cursor-constellation"></canvas>
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="topbar-brand">
+          <img src="/assets/logo-name.png" alt="sah4m!meter" />
+        </div>
+        <div class="topbar-search">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M10.5 3a7.5 7.5 0 1 1 0 15 7.5 7.5 0 0 1 0-15m0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11m8.78 13.36 2.36 2.36-1.42 1.42-2.36-2.36a9 9 0 0 1-1.6 1.13l-.38-.92a8 8 0 0 0 2.02-1.63Z"
+            />
+          </svg>
+          <input type="text" placeholder="Cari Sesuatu..." aria-label="Cari" />
+        </div>
+        <nav class="topbar-nav">
+          <a href="#" role="button" data-tab-target="spark-tab" class="active">Spark</a>
+          <a href="#" role="button" data-tab-target="api-tab">Live API</a>
+          <a href="#" role="button" data-tab-target="rss-tab">RSS</a>
+          <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false" aria-label="Toggle theme">
+            <svg class="track-icon sun" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 4.25a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V5a.75.75 0 0 1 .75-.75Zm0 12.5a.75.75 0 0 1 .75.75V19a.75.75 0 0 1-1.5 0v-1.5a.75.75 0 0 1 .75-.75Zm7.75-4.75a.75.75 0 0 1 .75.75.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5Zm-12.5 0a.75.75 0 0 1 .75.75.75.75 0 0 1-.75.75H5a.75.75 0 0 1 0-1.5h1.5ZM17.66 6.34a.75.75 0 0 1 1.06 1.06l-1.06 1.06a.75.75 0 1 1-1.06-1.06l1.06-1.06Zm-10.6 10.6a.75.75 0 0 1 1.06 1.06l-1.06 1.06a.75.75 0 1 1-1.06-1.06l1.06-1.06Zm10.6 2.12a.75.75 0 0 1-1.06-1.06l1.06-1.06a.75.75 0 1 1 1.06 1.06l-1.06 1.06ZM7.12 7.4a.75.75 0 0 1-1.06-1.06l1.06-1.06a.75.75 0 0 1 1.06 1.06L7.12 7.4ZM12 8.25a3.75 3.75 0 1 1 0 7.5 3.75 3.75 0 0 1 0-7.5Z" />
+            </svg>
+            <span class="thumb"></span>
+            <svg class="track-icon moon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M14.5 2.5a.75.75 0 0 1 .66 1.1 7.25 7.25 0 0 0 7.24 10.63.75.75 0 0 1 .36 1.4 9.5 9.5 0 1 1-8.6-13.13.75.75 0 0 1 .34 0Z" />
+            </svg>
+          </button>
+        </nav>
+      </div>
+    </div>
+    <div class="ticker">
+      <div class="ticker-track">
+        <div class="ticker-label"><span class="pulse"></span> Live Tape</div>
+        <div class="ticker-wrap" id="ticker-primary"></div>
+        <div class="ticker-wrap" id="ticker-secondary" aria-hidden="true"></div>
+      </div>
+      <div class="ticker-shadow"></div>
+    </div>
     <header>
-      <div class="pill">SahamMeter · IDX Market Monitoring</div>
-      <h1>Dashboard Saham & Berita Pasar Modal</h1>
+      <div class="badge"><span class="dot" id="live-dot"></span> SahamMeter - IDX Market Ops</div>
+      <h1>Dashboard Saham dan Berita Pasar Modal</h1>
       <p class="subtitle">
-        Panel ini menampilkan hasil Spark, data live dari Kafka consumer, dan artikel berita
-        terbaru. Data diperbarui otomatis setiap 30 detik agar demo terlihat aktif dari ujung ke
-        ujung.
+        This panel shows Spark results, live data from the Kafka consumer, and the latest news
+        articles. Data refreshes every 30 seconds so the demo feels active end-to-end.
       </p>
+      <div class="meta-row">
+        <div class="meta-card">Status: <strong id="status-text">Memuat data pipeline...</strong></div>
+        <div class="meta-card">Last refresh: <strong id="last-update">-</strong></div>
+        <div class="meta-card">Mode: <strong>Local-first</strong></div>
+      </div>
     </header>
 
     <main class="wrap">
       <section class="card hero">
-        <h2>Status Pipeline</h2>
-        <p class="meta" id="status-text">Memuat data pipeline...</p>
+        <div class="section-title">
+          <h2>Status Pipeline</h2>
+          <span class="pill">Auto refresh 30s</span>
+        </div>
         <div id="kpi-grid" class="kpi-grid"></div>
       </section>
 
-      <div class="tabs">
-        <button class="tab-button active" data-tab-target="spark-tab" type="button">Spark</button>
-        <button class="tab-button" data-tab-target="api-tab" type="button">Live API</button>
-        <button class="tab-button" data-tab-target="rss-tab" type="button">RSS</button>
-      </div>
-
       <section class="card tab-content active" id="spark-tab">
-        <h2>Hasil Spark</h2>
-        <div id="spark-panel" class="grid-list"></div>
+        <div class="section-title">
+          <h2>Hasil Spark</h2>
+          <span class="tag" id="spark-status">Ready</span>
+        </div>
+        <div id="spark-panel" class="spark-grid"></div>
         <div class="chart-grid">
           <div class="chart-box">
-            <div class="title">Spark Chart: Return per Saham</div>
+            <div class="item-title">Return per Saham</div>
             <canvas id="return-chart"></canvas>
           </div>
           <div class="chart-box">
-            <div class="title">Spark Chart: Rata-rata Harga per Jam</div>
+            <div class="item-title">Rata-rata Harga per Jam</div>
             <canvas id="hourly-chart"></canvas>
           </div>
           <div class="chart-box">
-            <div class="title">Spark Chart: API vs RSS Volume</div>
+            <div class="item-title">API vs RSS Volume</div>
             <canvas id="volume-chart"></canvas>
           </div>
           <div class="chart-box">
-            <div class="title">Spark Chart: Top Mentioned Company</div>
+            <div class="item-title">Top Mentioned Company</div>
             <canvas id="company-chart"></canvas>
+          </div>
+          <div class="chart-box">
+            <div class="item-title">Market Pulse</div>
+            <canvas id="pulse-chart"></canvas>
+            <div class="pulse-legend">
+              <span class="pulse-chip" id="pulse-status">Netral</span>
+              <span id="pulse-value" class="mono">0.00%</span>
+            </div>
           </div>
         </div>
       </section>
 
       <section class="card tab-content" id="api-tab">
-        <h2>Live API Saham</h2>
-        <div id="api-panel" class="grid-list"></div>
+        <div class="section-title">
+          <h2>Live API Saham</h2>
+          <span class="tag" id="api-status">Live stream</span>
+        </div>
+        <div id="api-panel" class="split"></div>
       </section>
 
       <section class="card tab-content" id="rss-tab">
-        <h2>Berita RSS Terbaru</h2>
+        <div class="section-title">
+          <h2>Berita RSS Terbaru</h2>
+          <span class="tag" id="rss-status">Fresh feed</span>
+        </div>
         <div id="rss-panel" class="grid-list"></div>
       </section>
     </main>
@@ -270,20 +842,34 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>
       const statusText = document.getElementById('status-text');
+      const lastUpdate = document.getElementById('last-update');
       const sparkPanel = document.getElementById('spark-panel');
       const apiPanel = document.getElementById('api-panel');
       const rssPanel = document.getElementById('rss-panel');
-      const tabButtons = Array.from(document.querySelectorAll('.tab-button'));
+      const themeToggle = document.getElementById('theme-toggle');
+      const searchInput = document.querySelector('.topbar-search input');
+      const tickerPrimary = document.getElementById('ticker-primary');
+      const tickerSecondary = document.getElementById('ticker-secondary');
+      const tabButtons = Array.from(document.querySelectorAll('[data-tab-target]'));
       const tabContents = Array.from(document.querySelectorAll('.tab-content'));
       const kpiGrid = document.getElementById('kpi-grid');
       const returnChartCanvas = document.getElementById('return-chart');
       const hourlyChartCanvas = document.getElementById('hourly-chart');
       const volumeChartCanvas = document.getElementById('volume-chart');
       const companyChartCanvas = document.getElementById('company-chart');
+      const pulseChartCanvas = document.getElementById('pulse-chart');
+      const pulseStatus = document.getElementById('pulse-status');
+      const pulseValue = document.getElementById('pulse-value');
+      const sparkStatus = document.getElementById('spark-status');
+      const apiStatus = document.getElementById('api-status');
+      const rssStatus = document.getElementById('rss-status');
       let returnChart = null;
       let hourlyChart = null;
       let volumeChart = null;
       let companyChart = null;
+      let pulseChart = null;
+      const marketPulseSeries = [];
+      let currentQuery = '';
 
       function activateTab(tabId) {
         tabButtons.forEach((button) => {
@@ -301,60 +887,138 @@
       }
 
       tabButtons.forEach((button) => {
-        button.addEventListener('click', () => activateTab(button.dataset.tabTarget));
+        button.addEventListener('click', (event) => {
+          event.preventDefault();
+          activateTab(button.dataset.tabTarget);
+        });
       });
       activateTab('spark-tab');
 
       function formatPercent(value) {
         if (value === null || value === undefined || Number.isNaN(Number(value))) {
-          return '-';
+          return '<span class="value-flat">-</span>';
         }
         const numeric = Number(value);
         const klass = numeric >= 0 ? 'value-up' : 'value-down';
         return `<span class="${klass}">${numeric.toFixed(2)}%</span>`;
       }
 
+      function formatNumber(value) {
+        if (value === null || value === undefined || Number.isNaN(Number(value))) {
+          return '-';
+        }
+        return Number(value).toLocaleString('id-ID');
+      }
+
+      function formatTime(value) {
+        if (!value) {
+          return '-';
+        }
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) {
+          return value;
+        }
+        return parsed.toLocaleString('id-ID');
+      }
+
+      function extractImageUrl(summary) {
+        if (!summary) {
+          return null;
+        }
+        const match = summary.match(/<img[^>]+src=["']([^"']+)["']/i);
+        return match ? match[1] : null;
+      }
+
+      function applySearch(query) {
+        const normalized = query.trim().toLowerCase();
+        const items = Array.from(document.querySelectorAll('main .item'));
+        const rows = Array.from(document.querySelectorAll('main tbody tr'));
+
+        if (!normalized) {
+          items.forEach((node) => node.classList.remove('search-hidden'));
+          rows.forEach((row) => row.classList.remove('search-hidden'));
+          return;
+        }
+
+        items.forEach((node) => {
+          const text = node.textContent?.toLowerCase() || '';
+          node.classList.toggle('search-hidden', !text.includes(normalized));
+        });
+        rows.forEach((row) => {
+          const text = row.textContent?.toLowerCase() || '';
+          row.classList.toggle('search-hidden', !text.includes(normalized));
+        });
+      }
+
+      function applyTheme(theme) {
+        if (theme === 'light') {
+          document.body.setAttribute('data-theme', 'light');
+          themeToggle?.classList.add('is-light');
+          themeToggle?.setAttribute('aria-pressed', 'true');
+        } else {
+          document.body.removeAttribute('data-theme');
+          themeToggle?.classList.remove('is-light');
+          themeToggle?.setAttribute('aria-pressed', 'false');
+        }
+      }
+
       function renderSpark(data) {
         renderKpis(data);
-        const stockTable = (data.stock_return || [])
-          .slice(0, 5)
+        const stockRows = (data.stock_return || [])
+          .slice(0, 8)
           .map(
             (row) => `
-				<tr>
-					<td>${row.symbol || '-'}</td>
-					<td>${row.price_start ?? '-'}</td>
-					<td>${row.price_latest ?? '-'}</td>
-					<td>${formatPercent(row.return_pct)}</td>
-				</tr>
-			`,
+              <tr>
+                <td class="mono"><a class="symbol-link" href="/stock/${row.symbol || ''}">${row.symbol || '-'}</a></td>
+                <td>${formatNumber(row.price_start)}</td>
+                <td>${formatNumber(row.price_latest)}</td>
+                <td>${formatPercent(row.return_pct)}</td>
+              </tr>
+            `,
           )
           .join('');
 
         const topMentions = (data.word_trends || data.news_mentions || data.company_mentions || [])
-          .slice(0, 5)
+          .slice(0, 6)
           .map(
             (row) => `
-				<div class="item">
-					<div class="title">${row.company || row.keyword || row.word || '-'}</div>
-					<div class="muted">Frekuensi sebutan: ${row.count ?? 0}</div>
-				</div>
-			`,
+              <div class="item">
+                <div class="item-title">${row.company || row.keyword || row.word || '-'}</div>
+                <div class="muted">Frekuensi sebutan: ${row.count ?? 0}</div>
+              </div>
+            `,
           )
           .join('');
 
+        const interpretations = data.interpretation || {};
+        const insightList = Object.values(interpretations)
+          .slice(0, 3)
+          .map((text) => `<div class="muted">${text}</div>`)
+          .join('');
+
         sparkPanel.innerHTML = `
-				<div class="item">
-					<div class="title">Return per saham</div>
-					<table>
-						<thead><tr><th>Kode</th><th>Awal</th><th>Terkini</th><th>Return</th></tr></thead>
-						<tbody>${stockTable || '<tr><td colspan="4">Belum ada hasil Spark.</td></tr>'}</tbody>
-					</table>
-				</div>
-				<div class="item">
-					<div class="title">Ringkasan berita</div>
-					<div class="grid-list">${topMentions || '<div class="muted">Belum ada ringkasan berita.</div>'}</div>
-				</div>
-			`;
+          <div class="item">
+            <div class="item-title">Return per saham</div>
+            <table>
+              <thead><tr><th>Kode</th><th>Awal</th><th>Terkini</th><th>Return</th></tr></thead>
+              <tbody>${stockRows || '<tr><td colspan="4">Belum ada hasil Spark.</td></tr>'}</tbody>
+            </table>
+          </div>
+          <div class="item">
+            <div class="item-title">Ringkasan berita</div>
+            <div class="grid-list">${topMentions || '<div class="loading">Belum ada ringkasan berita.</div>'}</div>
+          </div>
+          <div class="item">
+            <div class="item-title">Insight pipeline</div>
+            <div class="grid-list">${insightList || '<div class="loading">Belum ada interpretasi.</div>'}</div>
+          </div>
+          <div class="item">
+            <div class="item-title">Snapshot statistik</div>
+            <div class="muted">API events: <span class="mono">${data.api_event_count ?? 0}</span></div>
+            <div class="muted">RSS events: <span class="mono">${data.rss_event_count ?? 0}</span></div>
+            <div class="muted">Top return: <span class="mono">${data.spark_kpis?.top_return_symbol || '-'}</span></div>
+          </div>
+        `;
         updateCharts(data.stock_return || [], data.hourly_summary || []);
         updateVolumeChart(data.api_event_count || 0, data.rss_event_count || 0);
         updateCompanyChart(data.top_company_hourly_mentions || [], data.spark_kpis || {});
@@ -416,8 +1080,8 @@
               {
                 label: 'Return %',
                 data: returnValues,
-                backgroundColor: 'rgba(79, 209, 197, 0.72)',
-                borderColor: 'rgba(79, 209, 197, 1)',
+                backgroundColor: 'rgba(70, 214, 196, 0.7)',
+                borderColor: 'rgba(70, 214, 196, 1)',
                 borderWidth: 1,
               },
             ],
@@ -502,8 +1166,8 @@
             datasets: [
               {
                 data: [Number(apiCount) || 0, Number(rssCount) || 0],
-                backgroundColor: ['rgba(79, 209, 197, 0.8)', 'rgba(124, 147, 255, 0.8)'],
-                borderColor: ['rgba(79, 209, 197, 1)', 'rgba(124, 147, 255, 1)'],
+                backgroundColor: ['rgba(70, 214, 196, 0.8)', 'rgba(96, 126, 255, 0.8)'],
+                borderColor: ['rgba(70, 214, 196, 1)', 'rgba(96, 126, 255, 1)'],
                 borderWidth: 1,
               },
             ],
@@ -571,33 +1235,174 @@
       }
 
       function renderApi(items) {
-        const list = (items || [])
-          .slice(0, 6)
-          .map(
-            (item) => `
-				<div class="item">
-					<div class="title">${item.symbol || item.ticker || '-'} ${formatPercent(item.change_24h_pct)}</div>
-					<div class="muted">Harga: ${item.price_current ?? '-'} | Open: ${item.price_open ?? '-'} | Vol: ${item.volume ?? '-'}</div>
-				</div>
-			`,
-          )
+        const sorted = [...(items || [])];
+        renderTicker(sorted);
+        updatePulseChart(sorted);
+        const latestTimestamp = sorted[0]?.timestamp || sorted[0]?.consumed_at;
+        const gainers = sorted.filter((row) => Number(row.change_24h_pct) > 0).length;
+        const losers = sorted.filter((row) => Number(row.change_24h_pct) < 0).length;
+        const topVolume = sorted
+          .slice()
+          .sort((a, b) => (Number(b.volume) || 0) - (Number(a.volume) || 0))[0];
+
+        const tableRows = sorted
+          .slice(0, 10)
+          .map((item) => {
+            const pct = Number(item.change_24h_pct) || 0;
+            const barWidth = Math.min(Math.abs(pct) * 10, 100);
+            return `
+              <tr>
+                <td class="mono"><a class="symbol-link" href="/stock/${item.symbol || ''}">${item.symbol || item.ticker || '-'}</a></td>
+                <td>${formatNumber(item.price_current)}</td>
+                <td>${formatPercent(item.change_24h_pct)}</td>
+                <td>${formatNumber(item.volume)}</td>
+                <td>
+                  <div class="trend-bar"><span style="width: ${barWidth}%;"></span></div>
+                </td>
+              </tr>
+            `;
+          })
           .join('');
-        apiPanel.innerHTML = list || '<div class="muted">Belum ada data live API.</div>';
+
+        apiPanel.innerHTML = `
+          <div class="item">
+            <div class="item-title">Market snapshot</div>
+            <div class="muted">Last tick: <span class="mono">${formatTime(latestTimestamp)}</span></div>
+            <div class="muted">Total symbols: <span class="mono">${sorted.length}</span></div>
+            <div class="muted">Gainers: <span class="mono">${gainers}</span> | Losers: <span class="mono">${losers}</span></div>
+            <div class="muted">Top volume: <span class="mono">${topVolume?.symbol || '-'}</span> (${formatNumber(topVolume?.volume)})</div>
+          </div>
+          <div class="item">
+            <div class="item-title">Price board</div>
+            <table>
+              <thead>
+                <tr><th>Kode</th><th>Harga</th><th>Change</th><th>Volume</th><th>Trend</th></tr>
+              </thead>
+              <tbody>${tableRows || '<tr><td colspan="5">Belum ada data live API.</td></tr>'}</tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      function renderTicker(items) {
+        if (!items || items.length === 0) {
+          tickerPrimary.innerHTML = '<span class="ticker-item">Waiting for ticks...</span>';
+          tickerSecondary.innerHTML = '';
+          return;
+        }
+        const snapshot = items.slice(0, 12).map((item) => {
+          const symbol = item.symbol || item.ticker || '-';
+          const price = formatNumber(item.price_current);
+          const pct = Number(item.change_24h_pct);
+          const deltaClass = Number.isNaN(pct) ? 'flat' : pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat';
+          const deltaText = Number.isNaN(pct) ? '-' : `${pct.toFixed(2)}%`;
+          return `
+            <a class="ticker-item ticker-item-link" href="/stock/${symbol}">
+              <span class="symbol">${symbol}</span>
+              <span class="price">${price}</span>
+              <span class="delta ${deltaClass}">${deltaText}</span>
+            </a>
+          `;
+        });
+        const markup = snapshot.join('');
+        tickerPrimary.innerHTML = markup;
+        tickerSecondary.innerHTML = markup;
+      }
+
+      function updatePulseChart(items) {
+        if (typeof Chart === 'undefined') {
+          return;
+        }
+        const changes = (items || []).map((row) => Number(row.change_24h_pct)).filter((v) => !Number.isNaN(v));
+        const avgChange = changes.length
+          ? changes.reduce((sum, value) => sum + value, 0) / changes.length
+          : 0;
+        const nowLabel = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+        marketPulseSeries.push({ label: nowLabel, value: avgChange });
+        if (marketPulseSeries.length > 24) {
+          marketPulseSeries.shift();
+        }
+
+        const labels = marketPulseSeries.map((point) => point.label);
+        const values = marketPulseSeries.map((point) => Number(point.value) || 0);
+        const isPositive = avgChange > 0.02;
+        const isNegative = avgChange < -0.02;
+        const lineColor = isPositive ? 'rgba(64, 211, 159, 1)' : isNegative ? 'rgba(255, 107, 107, 1)' : 'rgba(154, 167, 196, 1)';
+        const fillColor = isPositive
+          ? 'rgba(64, 211, 159, 0.18)'
+          : isNegative
+            ? 'rgba(255, 107, 107, 0.18)'
+            : 'rgba(154, 167, 196, 0.12)';
+
+        pulseStatus.textContent = isPositive ? 'Bullish' : isNegative ? 'Bearish' : 'Netral';
+        pulseValue.textContent = `${avgChange.toFixed(2)}%`;
+        pulseStatus.style.color = isPositive ? '#40d39f' : isNegative ? '#ff6b6b' : '#9aa7c4';
+
+        if (pulseChart) {
+          pulseChart.destroy();
+        }
+        pulseChart = new Chart(pulseChartCanvas, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Market Pulse',
+                data: values,
+                borderColor: lineColor,
+                backgroundColor: fillColor,
+                tension: 0.35,
+                fill: true,
+                pointRadius: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                labels: { color: '#e9eefb' },
+              },
+            },
+            scales: {
+              x: {
+                ticks: { color: '#98a5c1' },
+                grid: { color: 'rgba(255,255,255,0.06)' },
+              },
+              y: {
+                ticks: { color: '#98a5c1' },
+                grid: { color: 'rgba(255,255,255,0.06)' },
+              },
+            },
+          },
+        });
       }
 
       function renderRss(items) {
         const list = (items || [])
-          .slice(0, 6)
+          .slice(0, 8)
           .map(
-            (item) => `
-				<div class="item">
-					<div class="title">${item.title || '-'}</div>
-					<div class="muted">${item.source || '-'} · ${item.published || item.timestamp || '-'}</div>
-				</div>
-			`,
+            (item) => {
+              const imageUrl = extractImageUrl(item.summary || '');
+              const cleanSummary = item.summary ? item.summary.replace(/<[^>]*>?/gm, '').slice(0, 160) : '';
+              return `
+                <div class="item rss-card">
+                  <div class="rss-item">
+                    ${imageUrl ? `<div class="rss-thumb"><img src="${imageUrl}" alt="${item.title || ''}" loading="lazy" /></div>` : ''}
+                    <div>
+                      <a class="rss-link" href="${item.link || '#'}" target="_blank" rel="noopener">${item.title || '-'}</a>
+                      <div class="muted">${item.source || '-'} | ${item.published || item.timestamp || '-'}</div>
+                      <div class="muted">${cleanSummary}</div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            },
           )
           .join('');
-        rssPanel.innerHTML = list || '<div class="muted">Belum ada berita RSS.</div>';
+        rssPanel.innerHTML = list || '<div class="loading">Belum ada berita RSS.</div>';
       }
 
       async function refreshData() {
@@ -607,14 +1412,125 @@
           renderSpark(data.spark || {});
           renderApi(data.live_api || []);
           renderRss(data.live_rss || []);
-          statusText.textContent = `Terakhir dimuat: ${new Date().toLocaleString('id-ID')}`;
+          applySearch(currentQuery);
+
+          const now = new Date();
+          statusText.textContent = 'Online';
+          lastUpdate.textContent = now.toLocaleString('id-ID');
+          sparkStatus.textContent = (data.spark?.api_event_count || 0) > 0 ? 'Ready' : 'Waiting';
+          apiStatus.textContent = (data.live_api || []).length > 0 ? 'Streaming' : 'Idle';
+          rssStatus.textContent = (data.live_rss || []).length > 0 ? 'Updated' : 'Idle';
         } catch (error) {
-          statusText.textContent = `Gagal memuat data: ${error.message}`;
+          statusText.textContent = `Gagal: ${error.message}`;
         }
       }
 
       refreshData();
       setInterval(refreshData, 30000);
+
+      if (searchInput) {
+        searchInput.addEventListener('input', (event) => {
+          currentQuery = event.target.value;
+          applySearch(currentQuery);
+        });
+      }
+
+      if (themeToggle) {
+        const savedTheme = localStorage.getItem('dashboard-theme');
+        applyTheme(savedTheme === 'light' ? 'light' : 'dark');
+        themeToggle.addEventListener('click', () => {
+          const nextTheme = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+          localStorage.setItem('dashboard-theme', nextTheme);
+          applyTheme(nextTheme);
+        });
+      }
+
+      const constellation = document.getElementById('cursor-constellation');
+      const stars = [];
+      const starCount = 18;
+      let pointer = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+
+      function resizeConstellation() {
+        if (!constellation) {
+          return;
+        }
+        constellation.width = window.innerWidth;
+        constellation.height = window.innerHeight;
+      }
+
+      function initStars() {
+        stars.length = 0;
+        for (let i = 0; i < starCount; i += 1) {
+          stars.push({
+            x: pointer.x,
+            y: pointer.y,
+            vx: 0,
+            vy: 0,
+            radius: 1.5 + Math.random() * 2.5,
+          });
+        }
+      }
+
+      resizeConstellation();
+      initStars();
+      window.addEventListener('resize', () => {
+        resizeConstellation();
+        initStars();
+      });
+
+      window.addEventListener('pointermove', (event) => {
+        pointer = { x: event.clientX, y: event.clientY };
+      });
+
+      function animateConstellation() {
+        if (!constellation) {
+          return;
+        }
+        const ctx = constellation.getContext('2d');
+        if (!ctx) {
+          return;
+        }
+        ctx.clearRect(0, 0, constellation.width, constellation.height);
+        ctx.lineWidth = 1;
+
+        let prevX = pointer.x;
+        let prevY = pointer.y;
+        stars.forEach((star, index) => {
+          const pull = 0.12 + index * 0.02;
+          star.x += (prevX - star.x) * pull;
+          star.y += (prevY - star.y) * pull;
+          prevX = star.x;
+          prevY = star.y;
+        });
+
+        for (let i = 0; i < stars.length; i += 1) {
+          const a = stars[i];
+          for (let j = i + 1; j < stars.length; j += 1) {
+            const b = stars[j];
+            const dx = a.x - b.x;
+            const dy = a.y - b.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 120) {
+              const alpha = 1 - dist / 120;
+              ctx.strokeStyle = `rgba(70, 214, 196, ${alpha * 0.35})`;
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(b.x, b.y);
+              ctx.stroke();
+            }
+          }
+        }
+
+        stars.forEach((star) => {
+          ctx.fillStyle = 'rgba(70, 214, 196, 0.85)';
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        requestAnimationFrame(animateConstellation);
+      }
+      animateConstellation();
     </script>
   </body>
 </html>
