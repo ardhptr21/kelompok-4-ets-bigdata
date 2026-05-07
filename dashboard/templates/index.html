@@ -25,7 +25,7 @@
         --ticker-bg: rgba(13, 16, 20, 0.94);
         --ticker-shadow: rgba(11, 13, 16, 0.96);
       }
-      [data-theme="light"] {
+      [data-theme='light'] {
         --bg: #f4f6f8;
         --panel: rgba(248, 250, 252, 0.98);
         --panel-border: rgba(20, 24, 28, 0.2);
@@ -46,19 +46,23 @@
       }
       body {
         margin: 0;
-        font-family: "Sora", system-ui, sans-serif;
+        font-family: 'Sora', system-ui, sans-serif;
         color: var(--text);
         background-color: var(--bg);
         min-height: 100vh;
-        cursor: url('/assets/cursor-48.png') 8 8, auto;
+        cursor:
+          url('/assets/cursor-48.png') 8 8,
+          auto;
       }
       a,
       button,
       input {
-        cursor: url('/assets/cursor-48.png') 8 8, pointer;
+        cursor:
+          url('/assets/cursor-48.png') 8 8,
+          pointer;
       }
       body::before {
-        content: "";
+        content: '';
         position: fixed;
         inset: 0;
         background-image:
@@ -108,7 +112,7 @@
         box-shadow: 0 16px 50px rgba(0, 0, 0, 0.35);
         backdrop-filter: blur(16px);
       }
-      [data-theme="light"] .card {
+      [data-theme='light'] .card {
         box-shadow: 0 12px 32px rgba(20, 24, 28, 0.12);
       }
       .hero {
@@ -190,11 +194,13 @@
         display: none;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
       }
-      [data-theme="light"] .search-suggestions {
+      [data-theme='light'] .search-suggestions {
         background: #ffffff;
         border-color: rgba(20, 24, 28, 0.18);
       }
-      .search-suggestions.open { display: block; }
+      .search-suggestions.open {
+        display: block;
+      }
       .topbar-search.search-open {
         border-radius: 14px 14px 0 0;
         border-bottom-color: transparent;
@@ -203,7 +209,7 @@
         padding: 8px 14px;
         cursor: pointer;
         font-size: 0.85rem;
-        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
         color: var(--text);
         display: flex;
         align-items: center;
@@ -220,7 +226,7 @@
         color: var(--muted);
         font-style: italic;
       }
-      [data-theme="light"] .topbar-search {
+      [data-theme='light'] .topbar-search {
         background: rgba(20, 24, 28, 0.04);
         border-color: rgba(20, 24, 28, 0.18);
       }
@@ -269,7 +275,9 @@
         background: rgba(255, 255, 255, 0.05);
         color: var(--text);
         cursor: pointer;
-        transition: border-color 0.2s ease, background 0.2s ease;
+        transition:
+          border-color 0.2s ease,
+          background 0.2s ease;
       }
       .theme-toggle .track-icon {
         width: 14px;
@@ -360,7 +368,7 @@
         border-radius: 999px;
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.07);
-        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
         font-size: 0.82rem;
         color: var(--text);
       }
@@ -372,7 +380,7 @@
         text-decoration: none;
         box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
       }
-      [data-theme="light"] .ticker-item {
+      [data-theme='light'] .ticker-item {
         background: rgba(20, 24, 28, 0.04);
         border-color: rgba(20, 24, 28, 0.18);
       }
@@ -422,21 +430,34 @@
       }
       @keyframes bg-drift {
         0% {
-          background-position: 0% 0%, 100% 0%, 0% 0%;
+          background-position:
+            0% 0%,
+            100% 0%,
+            0% 0%;
         }
         50% {
-          background-position: 10% 20%, 90% 30%, 0% 0%;
+          background-position:
+            10% 20%,
+            90% 30%,
+            0% 0%;
         }
         100% {
-          background-position: 0% 0%, 100% 0%, 0% 0%;
+          background-position:
+            0% 0%,
+            100% 0%,
+            0% 0%;
         }
       }
       @keyframes grid-drift {
         0% {
-          background-position: 0 0, 0 0;
+          background-position:
+            0 0,
+            0 0;
         }
         100% {
-          background-position: 64px 64px, 64px 64px;
+          background-position:
+            64px 64px,
+            64px 64px;
         }
       }
       @keyframes haze-float {
@@ -491,7 +512,7 @@
         background: rgba(255, 255, 255, 0.04);
         border: 1px solid rgba(255, 255, 255, 0.07);
       }
-      [data-theme="light"] .kpi {
+      [data-theme='light'] .kpi {
         background: rgba(20, 24, 28, 0.03);
         border-color: rgba(20, 24, 28, 0.16);
       }
@@ -506,7 +527,7 @@
         font-size: 1.35rem;
         font-weight: 700;
         letter-spacing: 0.02em;
-        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
       }
       .kpi-sub {
         color: var(--muted);
@@ -577,7 +598,7 @@
         background: rgba(255, 255, 255, 0.035);
         border: 1px solid rgba(255, 255, 255, 0.06);
       }
-      [data-theme="light"] .chart-box {
+      [data-theme='light'] .chart-box {
         background: rgba(20, 24, 28, 0.03);
         border-color: rgba(20, 24, 28, 0.14);
       }
@@ -638,7 +659,7 @@
         background: rgba(255, 255, 255, 0.035);
         border: 1px solid rgba(255, 255, 255, 0.06);
       }
-      [data-theme="light"] .item {
+      [data-theme='light'] .item {
         background: rgba(20, 24, 28, 0.03);
         border-color: rgba(20, 24, 28, 0.14);
       }
@@ -661,7 +682,7 @@
         color: var(--muted);
       }
       .mono {
-        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
       }
       .split {
         display: grid;
@@ -692,6 +713,137 @@
         height: 100%;
         background: linear-gradient(90deg, rgba(70, 214, 196, 0.9), rgba(96, 126, 255, 0.9));
       }
+      .market-snapshot {
+        display: grid;
+        gap: 14px;
+      }
+      .market-snapshot-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 18px;
+        border-radius: 18px;
+        background:
+          radial-gradient(circle at top left, rgba(95, 226, 210, 0.18), transparent 48%),
+          linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      [data-theme='light'] .market-snapshot-header {
+        background:
+          radial-gradient(circle at top left, rgba(15, 139, 119, 0.12), transparent 48%),
+          linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.86));
+        border-color: rgba(20, 24, 28, 0.14);
+      }
+      .market-snapshot-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--accent);
+        font-size: 0.76rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+      .market-snapshot-kicker .live-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--good);
+        box-shadow: 0 0 14px rgba(64, 211, 159, 0.8);
+      }
+      .market-snapshot-title {
+        margin: 0;
+        font-size: 1.2rem;
+        letter-spacing: 0.01em;
+      }
+      .market-snapshot-subtitle {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.6;
+      }
+      .market-snapshot-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+      .snapshot-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        font-size: 0.8rem;
+        white-space: nowrap;
+      }
+      [data-theme='light'] .snapshot-chip {
+        background: rgba(20, 24, 28, 0.04);
+        border-color: rgba(20, 24, 28, 0.14);
+      }
+      .snapshot-chip strong {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+      }
+      .snapshot-metrics {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .snapshot-metric {
+        padding: 14px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      [data-theme='light'] .snapshot-metric {
+        background: rgba(20, 24, 28, 0.03);
+        border-color: rgba(20, 24, 28, 0.14);
+      }
+      .snapshot-metric-label {
+        color: var(--muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        margin-bottom: 8px;
+      }
+      .snapshot-metric-value {
+        font-size: 1.15rem;
+        font-weight: 700;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+      }
+      .snapshot-metric-caption {
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 0.84rem;
+      }
+      .price-board {
+        padding: 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        overflow: hidden;
+      }
+      [data-theme='light'] .price-board {
+        background: rgba(20, 24, 28, 0.02);
+        border-color: rgba(20, 24, 28, 0.14);
+      }
+      .price-board table {
+        margin-top: 0;
+      }
+      .price-board th {
+        padding-top: 4px;
+      }
+      .price-board tbody tr:hover {
+        background: rgba(255, 255, 255, 0.03);
+      }
+      [data-theme='light'] .price-board tbody tr:hover {
+        background: rgba(20, 24, 28, 0.03);
+      }
       .rss-card {
         display: grid;
         gap: 8px;
@@ -710,7 +862,7 @@
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.07);
       }
-      [data-theme="light"] .rss-thumb {
+      [data-theme='light'] .rss-thumb {
         background: rgba(20, 24, 28, 0.04);
         border-color: rgba(20, 24, 28, 0.16);
       }
@@ -780,7 +932,9 @@
     <div class="topbar">
       <div class="topbar-inner">
         <div class="topbar-brand">
-          <img src="/assets/logo-name.png" alt="sah4m!meter" />
+          <a href="/">
+            <img src="/assets/logo-name.png" alt="sah4m!meter" />
+          </a>
         </div>
         <div class="topbar-search">
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -788,20 +942,35 @@
               d="M10.5 3a7.5 7.5 0 1 1 0 15 7.5 7.5 0 0 1 0-15m0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11m8.78 13.36 2.36 2.36-1.42 1.42-2.36-2.36a9 9 0 0 1-1.6 1.13l-.38-.92a8 8 0 0 0 2.02-1.63Z"
             />
           </svg>
-          <input type="text" placeholder="Cari saham..." aria-label="Cari saham" autocomplete="off" />
+          <input
+            type="text"
+            placeholder="Cari saham..."
+            aria-label="Cari saham"
+            autocomplete="off"
+          />
           <ul class="search-suggestions" id="search-suggestions" role="listbox"></ul>
         </div>
         <nav class="topbar-nav">
-          <a href="#" role="button" data-tab-target="spark-tab" class="active">Spark</a>
-          <a href="#" role="button" data-tab-target="api-tab">Live API</a>
-          <a href="#" role="button" data-tab-target="rss-tab">RSS</a>
-          <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false" aria-label="Toggle theme">
+          <a href="#" role="button" data-tab-target="spark-tab" class="active">Dashboard</a>
+          <a href="#" role="button" data-tab-target="api-tab">Live Stocks</a>
+          <a href="#" role="button" data-tab-target="rss-tab">News</a>
+          <button
+            class="theme-toggle"
+            id="theme-toggle"
+            type="button"
+            aria-pressed="false"
+            aria-label="Toggle theme"
+          >
             <svg class="track-icon sun" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 4.25a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V5a.75.75 0 0 1 .75-.75Zm0 12.5a.75.75 0 0 1 .75.75V19a.75.75 0 0 1-1.5 0v-1.5a.75.75 0 0 1 .75-.75Zm7.75-4.75a.75.75 0 0 1 .75.75.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5Zm-12.5 0a.75.75 0 0 1 .75.75.75.75 0 0 1-.75.75H5a.75.75 0 0 1 0-1.5h1.5ZM17.66 6.34a.75.75 0 0 1 1.06 1.06l-1.06 1.06a.75.75 0 1 1-1.06-1.06l1.06-1.06Zm-10.6 10.6a.75.75 0 0 1 1.06 1.06l-1.06 1.06a.75.75 0 1 1-1.06-1.06l1.06-1.06Zm10.6 2.12a.75.75 0 0 1-1.06-1.06l1.06-1.06a.75.75 0 1 1 1.06 1.06l-1.06 1.06ZM7.12 7.4a.75.75 0 0 1-1.06-1.06l1.06-1.06a.75.75 0 0 1 1.06 1.06L7.12 7.4ZM12 8.25a3.75 3.75 0 1 1 0 7.5 3.75 3.75 0 0 1 0-7.5Z" />
+              <path
+                d="M12 4.25a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V5a.75.75 0 0 1 .75-.75Zm0 12.5a.75.75 0 0 1 .75.75V19a.75.75 0 0 1-1.5 0v-1.5a.75.75 0 0 1 .75-.75Zm7.75-4.75a.75.75 0 0 1 .75.75.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5Zm-12.5 0a.75.75 0 0 1 .75.75.75.75 0 0 1-.75.75H5a.75.75 0 0 1 0-1.5h1.5ZM17.66 6.34a.75.75 0 0 1 1.06 1.06l-1.06 1.06a.75.75 0 1 1-1.06-1.06l1.06-1.06Zm-10.6 10.6a.75.75 0 0 1 1.06 1.06l-1.06 1.06a.75.75 0 1 1-1.06-1.06l1.06-1.06Zm10.6 2.12a.75.75 0 0 1-1.06-1.06l1.06-1.06a.75.75 0 1 1 1.06 1.06l-1.06 1.06ZM7.12 7.4a.75.75 0 0 1-1.06-1.06l1.06-1.06a.75.75 0 0 1 1.06 1.06L7.12 7.4ZM12 8.25a3.75 3.75 0 1 1 0 7.5 3.75 3.75 0 0 1 0-7.5Z"
+              />
             </svg>
             <span class="thumb"></span>
             <svg class="track-icon moon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M14.5 2.5a.75.75 0 0 1 .66 1.1 7.25 7.25 0 0 0 7.24 10.63.75.75 0 0 1 .36 1.4 9.5 9.5 0 1 1-8.6-13.13.75.75 0 0 1 .34 0Z" />
+              <path
+                d="M14.5 2.5a.75.75 0 0 1 .66 1.1 7.25 7.25 0 0 0 7.24 10.63.75.75 0 0 1 .36 1.4 9.5 9.5 0 1 1-8.6-13.13.75.75 0 0 1 .34 0Z"
+              />
             </svg>
           </button>
         </nav>
@@ -818,14 +987,16 @@
       <div class="ticker-shadow"></div>
     </div>
     <header>
-      <div class="badge"><span class="dot" id="live-dot"></span> SahamMeter - IDX Market Ops</div>
+      <div class="badge"><span class="dot" id="live-dot"></span> SahamMeter</div>
       <h1>Dashboard Saham dan Berita Pasar Modal</h1>
       <p class="subtitle">
-        This panel shows Spark results, live data from the Kafka consumer, and the latest news
-        articles. Data refreshes every 30 seconds so the demo feels active end-to-end.
+        menampilkan hasil analisis market saham terbaru dan data berita terkini dari berbagai
+        sumber.
       </p>
       <div class="meta-row">
-        <div class="meta-card">Status: <strong id="status-text">Memuat data pipeline...</strong></div>
+        <div class="meta-card">
+          Status: <strong id="status-text">Memuat data pipeline...</strong>
+        </div>
         <div class="meta-card">Last refresh: <strong id="last-update">-</strong></div>
         <div class="meta-card">Mode: <strong id="mode-indicator">Local-first</strong></div>
       </div>
@@ -834,7 +1005,7 @@
     <main class="wrap">
       <section class="card hero">
         <div class="section-title">
-          <h2>Status Pipeline</h2>
+          <h2>Status Data</h2>
           <span class="pill">Auto refresh 30s</span>
         </div>
         <div id="kpi-grid" class="kpi-grid"></div>
@@ -856,7 +1027,7 @@
             <canvas id="hourly-chart"></canvas>
           </div>
           <div class="chart-box">
-            <div class="item-title">API vs RSS Volume</div>
+            <div class="item-title">Stocks vs News Volume</div>
             <canvas id="volume-chart"></canvas>
           </div>
           <div class="chart-box">
@@ -879,12 +1050,12 @@
           <h2>Live API Saham</h2>
           <span class="tag" id="api-status">Live stream</span>
         </div>
-        <div id="api-panel" class="split"></div>
+        <div id="api-panel"></div>
       </section>
 
       <section class="card tab-content" id="rss-tab">
         <div class="section-title">
-          <h2>Berita RSS Terbaru</h2>
+          <h2>Berita Terbaru</h2>
           <span class="tag" id="rss-status">Fresh feed</span>
         </div>
         <div id="rss-panel" class="grid-list"></div>
@@ -928,10 +1099,16 @@
       let pulseChart = null;
       const PULSE_KEY = 'market-pulse-series';
       function loadPulseSeries() {
-        try { return JSON.parse(localStorage.getItem(PULSE_KEY) || '[]'); } catch { return []; }
+        try {
+          return JSON.parse(localStorage.getItem(PULSE_KEY) || '[]');
+        } catch {
+          return [];
+        }
       }
       function savePulseSeries(series) {
-        try { localStorage.setItem(PULSE_KEY, JSON.stringify(series)); } catch {}
+        try {
+          localStorage.setItem(PULSE_KEY, JSON.stringify(series));
+        } catch {}
       }
       const marketPulseSeries = loadPulseSeries();
       let currentQuery = '';
@@ -1065,12 +1242,6 @@
           )
           .join('');
 
-        const interpretations = data.interpretation || {};
-        const insightList = Object.values(interpretations)
-          .slice(0, 3)
-          .map((text) => `<div class="muted">${text}</div>`)
-          .join('');
-
         sparkPanel.innerHTML = `
           <div class="item">
             <div class="item-title">Return per saham</div>
@@ -1083,16 +1254,6 @@
             <div class="item-title">Ringkasan berita</div>
             <div class="grid-list">${topMentions || '<div class="loading">Belum ada ringkasan berita.</div>'}</div>
           </div>
-          <div class="item">
-            <div class="item-title">Insight pipeline</div>
-            <div class="grid-list">${insightList || '<div class="loading">Belum ada interpretasi.</div>'}</div>
-          </div>
-          <div class="item">
-            <div class="item-title">Snapshot statistik</div>
-            <div class="muted">API events: <span class="mono">${data.api_event_count ?? 0}</span></div>
-            <div class="muted">RSS events: <span class="mono">${data.rss_event_count ?? 0}</span></div>
-            <div class="muted">Top return: <span class="mono">${data.spark_kpis?.top_return_symbol || '-'}</span></div>
-          </div>
         `;
         updateCharts(data.stock_return || [], data.hourly_summary || []);
         updateVolumeChart(data.api_event_count || 0, data.rss_event_count || 0);
@@ -1102,21 +1263,22 @@
       function renderKpis(data) {
         const kpis = data.spark_kpis || {};
         const topReturnSymbol = kpis.top_return_symbol || '-';
-        const topReturnPct = kpis.top_return_pct !== null && kpis.top_return_pct !== undefined
-          ? `${Number(kpis.top_return_pct).toFixed(2)}%`
-          : '-';
+        const topReturnPct =
+          kpis.top_return_pct !== null && kpis.top_return_pct !== undefined
+            ? `${Number(kpis.top_return_pct).toFixed(2)}%`
+            : '-';
         const topCompany = kpis.top_company || '-';
         const topCompanyMentions = kpis.top_company_mentions ?? 0;
         kpiGrid.innerHTML = `
           <div class="kpi">
-            <div class="kpi-label">API Events</div>
+            <div class="kpi-label">Stocks Events</div>
             <div class="kpi-value">${data.api_event_count ?? 0}</div>
-            <div class="kpi-sub">Event saham dari producer API</div>
+            <div class="kpi-sub">Total iterasi Stocks</div>
           </div>
           <div class="kpi">
-            <div class="kpi-label">RSS Events</div>
+            <div class="kpi-label">News Events</div>
             <div class="kpi-value">${data.rss_event_count ?? 0}</div>
-            <div class="kpi-sub">Item berita dari producer RSS</div>
+            <div class="kpi-sub">Total iterasi News</div>
           </div>
           <div class="kpi">
             <div class="kpi-label">Top Return</div>
@@ -1136,11 +1298,15 @@
           return;
         }
 
-        const sortedReturn = [...stockReturn].sort((a, b) => (Number(b.return_pct) || 0) - (Number(a.return_pct) || 0));
+        const sortedReturn = [...stockReturn].sort(
+          (a, b) => (Number(b.return_pct) || 0) - (Number(a.return_pct) || 0),
+        );
         const returnLabels = sortedReturn.map((row) => row.symbol || '-');
         const returnValues = sortedReturn.map((row) => Number(row.return_pct) || 0);
 
-        const hourlySorted = [...hourlySummary].sort((a, b) => (Number(a.hour) || 0) - (Number(b.hour) || 0));
+        const hourlySorted = [...hourlySummary].sort(
+          (a, b) => (Number(a.hour) || 0) - (Number(b.hour) || 0),
+        );
         const hourlyLabels = hourlySorted.map((row) => `${String(row.hour).padStart(2, '0')}:00`);
         const hourlyValues = hourlySorted.map((row) => Number(row.avg_price) || 0);
 
@@ -1340,21 +1506,54 @@
           .join('');
 
         apiPanel.innerHTML = `
-          <div class="item">
-            <div class="item-title">Market snapshot</div>
-            <div class="muted">Last tick: <span class="mono">${formatTime(latestTimestamp)}</span></div>
-            <div class="muted">Total symbols: <span class="mono">${sorted.length}</span></div>
-            <div class="muted">Gainers: <span class="mono">${gainers}</span> | Losers: <span class="mono">${losers}</span></div>
-            <div class="muted">Top volume: <span class="mono">${topVolume?.symbol || '-'}</span> (${formatNumber(topVolume?.volume)})</div>
-          </div>
-          <div class="item">
-            <div class="item-title">Price board</div>
-            <table>
-              <thead>
-                <tr><th>Kode</th><th>Harga</th><th>Change</th><th>Volume</th><th>Trend</th></tr>
-              </thead>
-              <tbody>${tableRows || '<tr><td colspan="5">Belum ada data live API.</td></tr>'}</tbody>
-            </table>
+          <div class="market-snapshot">
+            <div class="market-snapshot-header">
+              <div>
+                <div class="market-snapshot-kicker"><span class="live-dot"></span> Live market</div>
+                <h3 class="market-snapshot-title">Real-time Stock Board</h3>
+                <div class="market-snapshot-subtitle">
+                  Dashboard ini menampilkan hasil analisis market saham terbaru dan data berita terkini dari berbagai sumber.
+                </div>
+              </div>
+              <div class="market-snapshot-actions">
+                <div class="snapshot-chip"><span>Last tick</span><strong>${formatTime(latestTimestamp)}</strong></div>
+                <div class="snapshot-chip"><span>Symbols</span><strong>${sorted.length}</strong></div>
+                <div class="snapshot-chip"><span>Net</span><strong>${gainers} up / ${losers} down</strong></div>
+              </div>
+            </div>
+
+            <div class="snapshot-metrics">
+              <div class="snapshot-metric">
+                <div class="snapshot-metric-label">Gainers</div>
+                <div class="snapshot-metric-value value-up">${gainers}</div>
+                <div class="snapshot-metric-caption">Symbols trading above the open</div>
+              </div>
+              <div class="snapshot-metric">
+                <div class="snapshot-metric-label">Losers</div>
+                <div class="snapshot-metric-value value-down">${losers}</div>
+                <div class="snapshot-metric-caption">Symbols trading below the open</div>
+              </div>
+              <div class="snapshot-metric">
+                <div class="snapshot-metric-label">Top volume</div>
+                <div class="snapshot-metric-value">${topVolume?.symbol || '-'}</div>
+                <div class="snapshot-metric-caption">${formatNumber(topVolume?.volume)} shares</div>
+              </div>
+              <div class="snapshot-metric">
+                <div class="snapshot-metric-label">Coverage</div>
+                <div class="snapshot-metric-value">${sorted.length}</div>
+                <div class="snapshot-metric-caption">Tracked live symbols</div>
+              </div>
+            </div>
+
+            <div class="price-board">
+              <div class="item-title">Price board</div>
+              <table>
+                <thead>
+                  <tr><th>Kode</th><th>Harga</th><th>Change</th><th>Volume</th><th>Trend</th></tr>
+                </thead>
+                <tbody>${tableRows || '<tr><td colspan="5">Belum ada data live API.</td></tr>'}</tbody>
+              </table>
+            </div>
           </div>
         `;
       }
@@ -1369,12 +1568,19 @@
           const symbol = item.symbol || item.ticker || '-';
           const price = formatNumber(item.price_current);
           const pct = Number(item.change_24h_pct);
-          const deltaClass = Number.isNaN(pct) ? 'flat' : pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat';
+          const deltaClass = Number.isNaN(pct)
+            ? 'flat'
+            : pct > 0
+              ? 'up'
+              : pct < 0
+                ? 'down'
+                : 'flat';
           const deltaText = Number.isNaN(pct) ? '-' : `${pct.toFixed(2)}%`;
           return `<a class="ticker-item ticker-item-link" href="/stock/${symbol}"><span class="symbol">${symbol}</span><span class="price">${price}</span><span class="delta ${deltaClass}">${deltaText}</span></a>`;
         });
         const singleMarkup = snapshot.join('');
-        const copies = Math.max(1, Math.ceil(window.innerWidth / Math.max(snapshot.length * 140, 1))) + 1;
+        const copies =
+          Math.max(1, Math.ceil(window.innerWidth / Math.max(snapshot.length * 140, 1))) + 1;
         const markup = singleMarkup.repeat(copies);
         tickerPrimary.innerHTML = markup;
         tickerSecondary.innerHTML = markup;
@@ -1384,11 +1590,16 @@
         if (typeof Chart === 'undefined') {
           return;
         }
-        const changes = (items || []).map((row) => Number(row.change_24h_pct)).filter((v) => !Number.isNaN(v));
+        const changes = (items || [])
+          .map((row) => Number(row.change_24h_pct))
+          .filter((v) => !Number.isNaN(v));
         const avgChange = changes.length
           ? changes.reduce((sum, value) => sum + value, 0) / changes.length
           : 0;
-        const nowLabel = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        const nowLabel = new Date().toLocaleTimeString('id-ID', {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
 
         marketPulseSeries.push({ label: nowLabel, value: avgChange });
         if (marketPulseSeries.length > 24) {
@@ -1400,7 +1611,11 @@
         const values = marketPulseSeries.map((point) => Number(point.value) || 0);
         const isPositive = avgChange > 0.02;
         const isNegative = avgChange < -0.02;
-        const lineColor = isPositive ? 'rgba(64, 211, 159, 1)' : isNegative ? 'rgba(255, 107, 107, 1)' : 'rgba(154, 167, 196, 1)';
+        const lineColor = isPositive
+          ? 'rgba(64, 211, 159, 1)'
+          : isNegative
+            ? 'rgba(255, 107, 107, 1)'
+            : 'rgba(154, 167, 196, 1)';
         const fillColor = isPositive
           ? 'rgba(64, 211, 159, 0.18)'
           : isNegative
@@ -1456,14 +1671,18 @@
 
       function mergeAndCacheApi(incoming) {
         let cached = [];
-        try { cached = JSON.parse(localStorage.getItem(API_CACHE_KEY) || '[]'); } catch {}
+        try {
+          cached = JSON.parse(localStorage.getItem(API_CACHE_KEY) || '[]');
+        } catch {}
         const bySymbol = new Map(cached.map((x) => [x.symbol || x.ticker, x]));
-        for (const item of (incoming || [])) {
+        for (const item of incoming || []) {
           const key = item.symbol || item.ticker;
           if (key) bySymbol.set(key, item);
         }
         const merged = [...bySymbol.values()];
-        try { localStorage.setItem(API_CACHE_KEY, JSON.stringify(merged)); } catch {}
+        try {
+          localStorage.setItem(API_CACHE_KEY, JSON.stringify(merged));
+        } catch {}
         return merged;
       }
 
@@ -1472,9 +1691,11 @@
 
       function mergeAndCacheRss(incoming) {
         let cached = [];
-        try { cached = JSON.parse(localStorage.getItem(RSS_CACHE_KEY) || '[]'); } catch {}
+        try {
+          cached = JSON.parse(localStorage.getItem(RSS_CACHE_KEY) || '[]');
+        } catch {}
         const seen = new Map(cached.map((x) => [x.item_id || x.link, x]));
-        for (const item of (incoming || [])) {
+        for (const item of incoming || []) {
           const key = item.item_id || item.link;
           if (key) seen.set(key, item);
         }
@@ -1489,17 +1710,20 @@
             const tb = b.timestamp ? new Date(b.timestamp).getTime() : 0;
             return tb - ta;
           });
-        try { localStorage.setItem(RSS_CACHE_KEY, JSON.stringify(merged)); } catch {}
+        try {
+          localStorage.setItem(RSS_CACHE_KEY, JSON.stringify(merged));
+        } catch {}
         return merged;
       }
 
       function renderRss(items) {
         const list = (items || [])
-          .map(
-            (item) => {
-              const imageUrl = extractImageUrl(item.summary || '');
-              const cleanSummary = item.summary ? item.summary.replace(/<[^>]*>?/gm, '').slice(0, 160) : '';
-              return `
+          .map((item) => {
+            const imageUrl = extractImageUrl(item.summary || '');
+            const cleanSummary = item.summary
+              ? item.summary.replace(/<[^>]*>?/gm, '').slice(0, 160)
+              : '';
+            return `
                 <div class="item rss-card">
                   <div class="rss-item">
                     ${imageUrl ? `<div class="rss-thumb"><img src="${imageUrl}" alt="${item.title || ''}" loading="lazy" /></div>` : ''}
@@ -1511,8 +1735,7 @@
                   </div>
                 </div>
               `;
-            },
-          )
+          })
           .join('');
         rssPanel.innerHTML = list || '<div class="loading">Belum ada berita RSS.</div>';
       }
@@ -1525,7 +1748,9 @@
           const liveApiItems = mergeAndCacheApi(data.live_api || []);
           renderApi(liveApiItems);
           renderRss(mergeAndCacheRss(data.live_rss || []));
-          const fromLive = [...new Set(liveApiItems.map((item) => item.symbol || item.ticker).filter(Boolean))];
+          const fromLive = [
+            ...new Set(liveApiItems.map((item) => item.symbol || item.ticker).filter(Boolean)),
+          ];
           availableSymbols = [...new Set([...FALLBACK_SYMBOLS, ...fromLive])];
 
           const now = new Date();
@@ -1586,7 +1811,10 @@
           return;
         }
         searchSuggestions.innerHTML = matches
-          .map((sym) => `<li class="search-suggestion-item" role="option" data-symbol="${sym}">${sym}</li>`)
+          .map(
+            (sym) =>
+              `<li class="search-suggestion-item" role="option" data-symbol="${sym}">${sym}</li>`,
+          )
           .join('');
         searchSuggestions.classList.add('open');
         if (searchWrapper) searchWrapper.classList.add('search-open');
@@ -1610,7 +1838,9 @@
         });
 
         searchInput.addEventListener('keydown', (event) => {
-          const items = searchSuggestions ? Array.from(searchSuggestions.querySelectorAll('.search-suggestion-item')) : [];
+          const items = searchSuggestions
+            ? Array.from(searchSuggestions.querySelectorAll('.search-suggestion-item'))
+            : [];
           if (event.key === 'ArrowDown') {
             event.preventDefault();
             suggestionActiveIndex = Math.min(suggestionActiveIndex + 1, items.length - 1);
@@ -1622,7 +1852,9 @@
           } else if (event.key === 'Enter') {
             event.preventDefault();
             const active = items.find((el) => el.classList.contains('active'));
-            const sym = active ? active.dataset.symbol : (items[0]?.dataset.symbol || searchInput.value.trim());
+            const sym = active
+              ? active.dataset.symbol
+              : items[0]?.dataset.symbol || searchInput.value.trim();
             navigateToStock(sym);
           } else if (event.key === 'Escape') {
             closeSuggestions();

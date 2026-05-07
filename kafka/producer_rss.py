@@ -6,6 +6,7 @@ import os
 import sys
 import time
 from pathlib import Path
+from datetime import datetime, timezone
 
 import feedparser
 
@@ -15,18 +16,34 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
 	sys.path.insert(0, str(ROOT_DIR))
 
-from producer_common import build_producer, log_interval_status as log_topic_status, utc_now_iso
-
-
 RSS_FEEDS = [
-	os.getenv("RSS_FEED_PRIMARY", "https://rss.bisnis.com/feed/rss2/financial-market"),
-	os.getenv("RSS_FEED_BACKUP", "https://www.cnnindonesia.com/ekonomi/rss"),
+	"https://rss.bisnis.com/feed/rss2/financial-market",
+	"https://www.cnnindonesia.com/ekonomi/rss",
 ]
 
-DEFAULT_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
-DEFAULT_TOPIC = os.getenv("RSS_TOPIC", "saham-rss")
-POLL_INTERVAL_SECONDS = int(os.getenv("RSS_POLL_INTERVAL_SECONDS", "300"))
-STATE_FILE = os.getenv("RSS_STATE_FILE", ".rss_seen_ids.json")
+DEFAULT_BOOTSTRAP     = "localhost:9092"
+DEFAULT_TOPIC         = "saham-rss"
+POLL_INTERVAL_SECONDS = 300
+STATE_FILE            = ".rss_seen_ids.json"
+
+def utc_now_iso() -> str:
+	return datetime.now(timezone.utc).isoformat()
+
+
+def build_producer(bootstrap_servers: str | None = None) -> KafkaProducer:
+	return KafkaProducer(
+		bootstrap_servers=bootstrap_servers or os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"),
+		acks="all",
+		retries=10,
+		linger_ms=10,
+		enable_idempotence=True,
+		value_serializer=lambda value: json.dumps(value, ensure_ascii=False).encode("utf-8"),
+		key_serializer=lambda value: value.encode("utf-8") if isinstance(value, str) else value,
+	)
+
+
+def log_topic_status(topic: str, sent_count: int) -> None:
+	print(f"Sent {sent_count} items to {topic}", flush=True)
 
 
 def load_seen_ids() -> set[str]:

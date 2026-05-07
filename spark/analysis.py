@@ -10,24 +10,24 @@ import logging
 
 
 # logging
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+LOG_LEVEL = "INFO"
 logging.basicConfig(level=LOG_LEVEL, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("spark.analysis")
 
 
-BASE_DIR = Path(__file__).resolve().parent
-ROOT_DIR = BASE_DIR.parent
-DASHBOARD_DATA_DIR = ROOT_DIR / "dashboard" / "data"
+BASE_DIR                = Path(__file__).resolve().parent
+ROOT_DIR                = BASE_DIR.parent
+DASHBOARD_DATA_DIR      = ROOT_DIR / "dashboard" / "data"
 DASHBOARD_DATA_DIR.mkdir(parents=True, exist_ok=True)
-LOCAL_RESULTS_PATH = DASHBOARD_DATA_DIR / "spark_results.json"
+LOCAL_RESULTS_PATH      = DASHBOARD_DATA_DIR / "spark_results.json"
 LOCAL_CONSUMER_DATA_DIR = DASHBOARD_DATA_DIR
 
-HDFS_BASE_PATH = os.getenv("HDFS_BASE_PATH", "/data/saham")
-HDFS_API_PATH = f"{HDFS_BASE_PATH}/api"
-HDFS_RSS_PATH = f"{HDFS_BASE_PATH}/rss"
+HDFS_BASE_PATH   = "/data/saham"
+HDFS_API_PATH    = f"{HDFS_BASE_PATH}/api"
+HDFS_RSS_PATH    = f"{HDFS_BASE_PATH}/rss"
 HDFS_RESULT_PATH = f"{HDFS_BASE_PATH}/hasil"
-DEFAULT_FS = os.getenv("SPARK_DEFAULT_FS", "hdfs://localhost:8020")
-HDFS_USER = os.getenv("HDFS_USER", "hadoop")
+DEFAULT_FS       = "hdfs://localhost:8020"
+HDFS_USER        = "hadoop"
 os.environ.setdefault("HADOOP_USER_NAME", HDFS_USER)
 
 STOPWORDS = {"dan", "yang", "di", "ke", "dari", "untuk", "dengan", "pada", "atau", "the", "a", "an"}

@@ -23,7 +23,7 @@
         --grid-line: rgba(255, 255, 255, 0.08);
         --topbar-bg: rgba(12, 14, 18, 0.96);
       }
-      [data-theme="light"] {
+      [data-theme='light'] {
         --bg: #f4f6f8;
         --panel: rgba(248, 250, 252, 0.98);
         --panel-border: rgba(20, 24, 28, 0.2);
@@ -42,19 +42,23 @@
       }
       body {
         margin: 0;
-        font-family: "Sora", system-ui, sans-serif;
+        font-family: 'Sora', system-ui, sans-serif;
         color: var(--text);
         background-color: var(--bg);
         min-height: 100vh;
-        cursor: url('/assets/cursor-48.png') 8 8, auto;
+        cursor:
+          url('/assets/cursor-48.png') 8 8,
+          auto;
       }
       a,
       button,
       input {
-        cursor: url('/assets/cursor-48.png') 8 8, pointer;
+        cursor:
+          url('/assets/cursor-48.png') 8 8,
+          pointer;
       }
       body::before {
-        content: "";
+        content: '';
         position: fixed;
         inset: 0;
         background-image:
@@ -165,7 +169,7 @@
         padding: 20px;
         box-shadow: 0 16px 42px rgba(0, 0, 0, 0.28);
       }
-      [data-theme="light"] .panel {
+      [data-theme='light'] .panel {
         box-shadow: 0 12px 28px rgba(20, 24, 28, 0.12);
       }
       .hero {
@@ -190,7 +194,7 @@
         border-radius: 16px;
         padding: 12px;
       }
-      [data-theme="light"] .stat {
+      [data-theme='light'] .stat {
         background: rgba(20, 24, 28, 0.03);
         border-color: rgba(20, 24, 28, 0.16);
       }
@@ -201,7 +205,7 @@
         letter-spacing: 0.12em;
       }
       .stat-value {
-        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
         font-weight: 600;
         font-size: 1.15rem;
       }
@@ -222,7 +226,7 @@
         border-radius: 16px;
         padding: 12px;
       }
-      [data-theme="light"] .side-item {
+      [data-theme='light'] .side-item {
         background: rgba(20, 24, 28, 0.03);
         border-color: rgba(20, 24, 28, 0.16);
       }
@@ -253,18 +257,30 @@
     <div class="topbar">
       <div class="topbar-inner">
         <div class="topbar-brand">
-          <img src="/assets/logo-name.png" alt="sah4m!meter" />
+          <a href="/">
+            <img src="/assets/logo-name.png" alt="sah4m!meter" />
+          </a>
         </div>
         <div></div>
         <div class="topbar-actions">
           <a class="back-link" href="/">Back to Dashboard</a>
-          <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false" aria-label="Toggle theme">
+          <button
+            class="theme-toggle"
+            id="theme-toggle"
+            type="button"
+            aria-pressed="false"
+            aria-label="Toggle theme"
+          >
             <svg class="track-icon sun" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 4.25a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V5a.75.75 0 0 1 .75-.75Zm0 12.5a.75.75 0 0 1 .75.75V19a.75.75 0 0 1-1.5 0v-1.5a.75.75 0 0 1 .75-.75Zm7.75-4.75a.75.75 0 0 1 .75.75.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5Zm-12.5 0a.75.75 0 0 1 .75.75.75.75 0 0 1-.75.75H5a.75.75 0 0 1 0-1.5h1.5ZM17.66 6.34a.75.75 0 0 1 1.06 1.06l-1.06 1.06a.75.75 0 1 1-1.06-1.06l1.06-1.06Zm-10.6 10.6a.75.75 0 0 1 1.06 1.06l-1.06 1.06a.75.75 0 1 1-1.06-1.06l1.06-1.06Zm10.6 2.12a.75.75 0 0 1-1.06-1.06l1.06-1.06a.75.75 0 1 1 1.06 1.06l-1.06 1.06ZM7.12 7.4a.75.75 0 0 1-1.06-1.06l1.06-1.06a.75.75 0 0 1 1.06 1.06L7.12 7.4ZM12 8.25a3.75 3.75 0 1 1 0 7.5 3.75 3.75 0 0 1 0-7.5Z" />
+              <path
+                d="M12 4.25a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V5a.75.75 0 0 1 .75-.75Zm0 12.5a.75.75 0 0 1 .75.75V19a.75.75 0 0 1-1.5 0v-1.5a.75.75 0 0 1 .75-.75Zm7.75-4.75a.75.75 0 0 1 .75.75.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5Zm-12.5 0a.75.75 0 0 1 .75.75.75.75 0 0 1-.75.75H5a.75.75 0 0 1 0-1.5h1.5ZM17.66 6.34a.75.75 0 0 1 1.06 1.06l-1.06 1.06a.75.75 0 1 1-1.06-1.06l1.06-1.06Zm-10.6 10.6a.75.75 0 0 1 1.06 1.06l-1.06 1.06a.75.75 0 1 1-1.06-1.06l1.06-1.06Zm10.6 2.12a.75.75 0 0 1-1.06-1.06l1.06-1.06a.75.75 0 1 1 1.06 1.06l-1.06 1.06ZM7.12 7.4a.75.75 0 0 1-1.06-1.06l1.06-1.06a.75.75 0 0 1 1.06 1.06L7.12 7.4ZM12 8.25a3.75 3.75 0 1 1 0 7.5 3.75 3.75 0 0 1 0-7.5Z"
+              />
             </svg>
             <span class="thumb"></span>
             <svg class="track-icon moon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M14.5 2.5a.75.75 0 0 1 .66 1.1 7.25 7.25 0 0 0 7.24 10.63.75.75 0 0 1 .36 1.4 9.5 9.5 0 1 1-8.6-13.13.75.75 0 0 1 .34 0Z" />
+              <path
+                d="M14.5 2.5a.75.75 0 0 1 .66 1.1 7.25 7.25 0 0 0 7.24 10.63.75.75 0 0 1 .36 1.4 9.5 9.5 0 1 1-8.6-13.13.75.75 0 0 1 .34 0Z"
+              />
             </svg>
           </button>
         </div>
@@ -310,6 +326,9 @@
       const volumeCanvas = document.getElementById('volume-chart');
       const returnCanvas = document.getElementById('return-chart');
       const themeToggle = document.getElementById('theme-toggle');
+      let priceChart = null;
+      let volumeChart = null;
+      let returnChart = null;
 
       function applyTheme(theme) {
         if (theme === 'light') {
@@ -340,8 +359,97 @@
         return Number(value).toLocaleString('id-ID');
       }
 
+      function destroyCharts() {
+        priceChart?.destroy();
+        volumeChart?.destroy();
+        returnChart?.destroy();
+      }
+
+      function buildCharts(labels, prices, volumes, returns) {
+        destroyCharts();
+
+        priceChart = new Chart(priceCanvas, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Price',
+                data: prices,
+                borderColor: 'rgba(95, 226, 210, 1)',
+                backgroundColor: 'rgba(95, 226, 210, 0.16)',
+                tension: 0.35,
+                fill: true,
+                pointRadius: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#e9eefb' } } },
+            scales: {
+              x: { ticks: { color: '#98a5c1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+              y: { ticks: { color: '#98a5c1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+            },
+          },
+        });
+
+        volumeChart = new Chart(volumeCanvas, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Volume',
+                data: volumes,
+                backgroundColor: 'rgba(95, 226, 210, 0.4)',
+                borderColor: 'rgba(95, 226, 210, 0.8)',
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#e9eefb' } } },
+            scales: {
+              x: { ticks: { color: '#98a5c1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+              y: { ticks: { color: '#98a5c1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+            },
+          },
+        });
+
+        returnChart = new Chart(returnCanvas, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Return %',
+                data: returns,
+                borderColor: 'rgba(255, 107, 107, 1)',
+                backgroundColor: 'rgba(255, 107, 107, 0.16)',
+                tension: 0.35,
+                fill: true,
+                pointRadius: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#e9eefb' } } },
+            scales: {
+              x: { ticks: { color: '#98a5c1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+              y: { ticks: { color: '#98a5c1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+            },
+          },
+        });
+      }
+
       async function loadDetail() {
-        const response = await fetch(`/api/stock/${symbol}`);
+        const response = await fetch(`/api/stock/${symbol}`, { cache: 'no-store' });
         const data = await response.json();
 
         if (data.error) {
@@ -388,7 +496,9 @@
           </div>
         `;
 
-        const labels = data.timestamps.map((value) => new Date(value).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }));
+        const labels = data.timestamps.map((value) =>
+          new Date(value).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+        );
         const prices = data.prices;
         const volumes = data.volumes;
         const returns = prices.map((value, index) => {
@@ -397,87 +507,11 @@
           return ((value - base) / base) * 100;
         });
 
-        new Chart(priceCanvas, {
-          type: 'line',
-          data: {
-            labels,
-            datasets: [
-              {
-                label: 'Price',
-                data: prices,
-                borderColor: 'rgba(95, 226, 210, 1)',
-                backgroundColor: 'rgba(95, 226, 210, 0.16)',
-                tension: 0.35,
-                fill: true,
-                pointRadius: 2,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: '#e9eefb' } } },
-            scales: {
-              x: { ticks: { color: '#98a5c1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
-              y: { ticks: { color: '#98a5c1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
-            },
-          },
-        });
-
-        new Chart(volumeCanvas, {
-          type: 'bar',
-          data: {
-            labels,
-            datasets: [
-              {
-                label: 'Volume',
-                data: volumes,
-                backgroundColor: 'rgba(95, 226, 210, 0.4)',
-                borderColor: 'rgba(95, 226, 210, 0.8)',
-                borderWidth: 1,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: '#e9eefb' } } },
-            scales: {
-              x: { ticks: { color: '#98a5c1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
-              y: { ticks: { color: '#98a5c1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
-            },
-          },
-        });
-
-        new Chart(returnCanvas, {
-          type: 'line',
-          data: {
-            labels,
-            datasets: [
-              {
-                label: 'Return %',
-                data: returns,
-                borderColor: 'rgba(255, 107, 107, 1)',
-                backgroundColor: 'rgba(255, 107, 107, 0.16)',
-                tension: 0.35,
-                fill: true,
-                pointRadius: 2,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: '#e9eefb' } } },
-            scales: {
-              x: { ticks: { color: '#98a5c1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
-              y: { ticks: { color: '#98a5c1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
-            },
-          },
-        });
+        buildCharts(labels, prices, volumes, returns);
       }
 
       loadDetail();
+      setInterval(loadDetail, 30000);
     </script>
   </body>
 </html>
