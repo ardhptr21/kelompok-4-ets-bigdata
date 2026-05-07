@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -38,6 +39,13 @@ COMPANY_TERMS = {
     "Astra International": ["astra", "astra international"],
     "Bank Mandiri": ["mandiri", "bank mandiri"],
 }
+
+
+def build_term_pattern(terms: list[str]) -> str:
+    escaped_terms = [re.escape(term.lower()) for term in terms if term]
+    if not escaped_terms:
+        return r"$^"
+    return rf"(?i)(?:\b{'|\b'.join(escaped_terms)}\b)"
 
 
 def utc_now_iso() -> str:
@@ -97,8 +105,8 @@ def normalize_rss(df: DataFrame) -> DataFrame:
 def compute_stock_return(df: DataFrame) -> list[dict]:
     if df.rdd.isEmpty():
         return []
-    window_asc = Window.partitionBy("symbol").orderBy(F.col("timestamp_ts").asc())
-    window_desc = Window.partitionBy("symbol").orderBy(F.col("timestamp_ts").desc())
+    window_asc = Window.partitionBy("symbol").orderBy(F.col("timestamp_ts").asc(), F.col("price_current").asc())
+    window_desc = Window.partitionBy("symbol").orderBy(F.col("timestamp_ts").desc(), F.col("price_current").desc())
     start_df = (
         df.withColumn("rn", F.row_number().over(window_asc))
         .filter(F.col("rn") == 1)
@@ -178,9 +186,8 @@ def compute_company_mentions(df: DataFrame) -> list[dict]:
     lower_summary = F.lower(F.coalesce(F.col("summary"), F.lit("")))
     results: list[dict] = []
     for company, terms in COMPANY_TERMS.items():
-        condition = F.lit(False)
-        for term in terms:
-            condition = condition | lower_title.contains(term) | lower_summary.contains(term)
+        term_pattern = build_term_pattern(terms)
+        condition = lower_title.rlike(term_pattern) | lower_summary.rlike(term_pattern)
         results.append({"company": company, "count": df.filter(condition).count()})
     return sorted(results, key=lambda item: item["count"], reverse=True)
 
@@ -190,11 +197,10 @@ def compute_company_hourly_mentions(df: DataFrame, company: str) -> list[dict]:
     if df.rdd.isEmpty() or not terms:
         return []
 
-    condition = F.lit(False)
     lower_title = F.lower(F.coalesce(F.col("title"), F.lit("")))
     lower_summary = F.lower(F.coalesce(F.col("summary"), F.lit("")))
-    for term in terms:
-        condition = condition | lower_title.contains(term) | lower_summary.contains(term)
+    term_pattern = build_term_pattern(terms)
+    condition = lower_title.rlike(term_pattern) | lower_summary.rlike(term_pattern)
 
     summary = (
         df.filter(condition)
@@ -279,15 +285,7 @@ def main() -> None:
         "word_trends": word_trends,
         "company_mentions": company_mentions,
         "top_company_hourly_mentions": top_company_hourly_mentions,
-        "spark_kpis": spark_kpis,
-        "interpretation": {
-            "stock_return": "Saham dengan return tertinggi menunjukkan momentum terkuat pada periode data yang tersedia.",
-            "intraday_volatility": "Standar deviasi harga yang tinggi mengindikasikan saham lebih fluktuatif untuk dipantau.",
-            "hourly_summary": "Rata-rata harga per jam membantu melihat pola intraday selama data terkumpul.",
-            "word_trends": "Kata yang sering muncul di judul berita membantu mengidentifikasi tema pasar yang dominan.",
-            "company_mentions": "Frekuensi sebutan emiten di berita dapat dipakai sebagai sinyal konteks sentimen pasar.",
-            "top_company_hourly_mentions": "Pola sebutan emiten unggulan per jam membantu melihat kapan topik tersebut paling ramai dibahas.",
-        },
+        "spark_kpis": spark_kpis
     }
 
     write_local_results(result)
