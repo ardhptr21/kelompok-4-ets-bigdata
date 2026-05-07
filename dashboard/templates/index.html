@@ -678,12 +678,6 @@
       .search-hidden {
         display: none !important;
       }
-      .cursor-constellation {
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        z-index: 4;
-      }
       @media (max-width: 1080px) {
         .kpi-grid,
         .chart-grid,
@@ -727,7 +721,6 @@
     </style>
   </head>
   <body>
-    <canvas class="cursor-constellation" id="cursor-constellation"></canvas>
     <div class="topbar">
       <div class="topbar-inner">
         <div class="topbar-brand">
@@ -775,7 +768,7 @@
       <div class="meta-row">
         <div class="meta-card">Status: <strong id="status-text">Memuat data pipeline...</strong></div>
         <div class="meta-card">Last refresh: <strong id="last-update">-</strong></div>
-        <div class="meta-card">Mode: <strong>Local-first</strong></div>
+        <div class="meta-card">Mode: <strong id="mode-indicator">Local-first</strong></div>
       </div>
     </header>
 
@@ -843,6 +836,7 @@
     <script>
       const statusText = document.getElementById('status-text');
       const lastUpdate = document.getElementById('last-update');
+      const modeIndicator = document.getElementById('mode-indicator');
       const sparkPanel = document.getElementById('spark-panel');
       const apiPanel = document.getElementById('api-panel');
       const rssPanel = document.getElementById('rss-panel');
@@ -1417,6 +1411,9 @@
           const now = new Date();
           statusText.textContent = 'Online';
           lastUpdate.textContent = now.toLocaleString('id-ID');
+          if (data.mode) {
+            modeIndicator.textContent = data.mode;
+          }
           sparkStatus.textContent = (data.spark?.api_event_count || 0) > 0 ? 'Ready' : 'Waiting';
           apiStatus.textContent = (data.live_api || []).length > 0 ? 'Streaming' : 'Idle';
           rssStatus.textContent = (data.live_rss || []).length > 0 ? 'Updated' : 'Idle';
@@ -1444,93 +1441,6 @@
           applyTheme(nextTheme);
         });
       }
-
-      const constellation = document.getElementById('cursor-constellation');
-      const stars = [];
-      const starCount = 18;
-      let pointer = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-
-      function resizeConstellation() {
-        if (!constellation) {
-          return;
-        }
-        constellation.width = window.innerWidth;
-        constellation.height = window.innerHeight;
-      }
-
-      function initStars() {
-        stars.length = 0;
-        for (let i = 0; i < starCount; i += 1) {
-          stars.push({
-            x: pointer.x,
-            y: pointer.y,
-            vx: 0,
-            vy: 0,
-            radius: 1.5 + Math.random() * 2.5,
-          });
-        }
-      }
-
-      resizeConstellation();
-      initStars();
-      window.addEventListener('resize', () => {
-        resizeConstellation();
-        initStars();
-      });
-
-      window.addEventListener('pointermove', (event) => {
-        pointer = { x: event.clientX, y: event.clientY };
-      });
-
-      function animateConstellation() {
-        if (!constellation) {
-          return;
-        }
-        const ctx = constellation.getContext('2d');
-        if (!ctx) {
-          return;
-        }
-        ctx.clearRect(0, 0, constellation.width, constellation.height);
-        ctx.lineWidth = 1;
-
-        let prevX = pointer.x;
-        let prevY = pointer.y;
-        stars.forEach((star, index) => {
-          const pull = 0.12 + index * 0.02;
-          star.x += (prevX - star.x) * pull;
-          star.y += (prevY - star.y) * pull;
-          prevX = star.x;
-          prevY = star.y;
-        });
-
-        for (let i = 0; i < stars.length; i += 1) {
-          const a = stars[i];
-          for (let j = i + 1; j < stars.length; j += 1) {
-            const b = stars[j];
-            const dx = a.x - b.x;
-            const dy = a.y - b.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < 120) {
-              const alpha = 1 - dist / 120;
-              ctx.strokeStyle = `rgba(70, 214, 196, ${alpha * 0.35})`;
-              ctx.beginPath();
-              ctx.moveTo(a.x, a.y);
-              ctx.lineTo(b.x, b.y);
-              ctx.stroke();
-            }
-          }
-        }
-
-        stars.forEach((star) => {
-          ctx.fillStyle = 'rgba(70, 214, 196, 0.85)';
-          ctx.beginPath();
-          ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-          ctx.fill();
-        });
-
-        requestAnimationFrame(animateConstellation);
-      }
-      animateConstellation();
     </script>
   </body>
 </html>

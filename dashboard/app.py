@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 from flask import Flask, jsonify, render_template, send_from_directory
@@ -15,6 +16,8 @@ SPARK_RESULTS_PATH = DATA_DIR / "spark_results.json"
 SPARK_RESULTS_FALLBACK_PATH = DATA_DIR / "spark_results_hdfs_fallback.json"
 LIVE_API_PATH = DATA_DIR / "live_api.json"
 LIVE_RSS_PATH = DATA_DIR / "live_rss.json"
+
+ENABLE_HDFS_REMOTE = os.getenv("ENABLE_HDFS_REMOTE", "").lower() in {"1", "true", "yes"}
 
 app = Flask(__name__)
 
@@ -63,7 +66,14 @@ def index():
 
 @app.route("/api/data")
 def api_data():
-	return jsonify(read_dashboard_payload())
+	payload = read_dashboard_payload()
+	payload["mode"] = "HDFS" if ENABLE_HDFS_REMOTE else "Local-first"
+	return jsonify(payload)
+
+
+@app.route("/api/status")
+def api_status():
+	return jsonify({"mode": "HDFS" if ENABLE_HDFS_REMOTE else "Local-first"})
 
 
 @app.route("/assets/<path:filename>")
