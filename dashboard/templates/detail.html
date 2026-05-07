@@ -88,10 +88,13 @@
         gap: 12px;
       }
       .topbar-brand img {
-        height: 36px;
-        width: auto;
+        width: 170px;
+        height: auto;
         display: block;
       }
+      .topbar-brand .logo-light { display: none; }
+      [data-theme="light"] .topbar-brand .logo-dark { display: none; }
+      [data-theme="light"] .topbar-brand .logo-light { display: block; }
       .topbar-actions {
         display: inline-flex;
         align-items: center;
@@ -253,7 +256,8 @@
     <div class="topbar">
       <div class="topbar-inner">
         <div class="topbar-brand">
-          <img src="/assets/logo-name.png" alt="sah4m!meter" />
+          <img class="logo-dark" src="/assets/logo-name.png" alt="sah4m!meter" />
+          <img class="logo-light" src="/assets/logo-name-blk.png" alt="sah4m!meter" />
         </div>
         <div></div>
         <div class="topbar-actions">
