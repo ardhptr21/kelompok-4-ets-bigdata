@@ -92,8 +92,17 @@
         gap: 12px;
       }
       .topbar-brand img {
-        height: 36px;
-        width: auto;
+        width: 170px;
+        height: auto;
+        display: block;
+      }
+      .topbar-brand .logo-light {
+        display: none;
+      }
+      [data-theme='light'] .topbar-brand .logo-dark {
+        display: none;
+      }
+      [data-theme='light'] .topbar-brand .logo-light {
         display: block;
       }
       .topbar-actions {
@@ -256,11 +265,12 @@
   <body data-symbol="{{ symbol }}">
     <div class="topbar">
       <div class="topbar-inner">
-        <div class="topbar-brand">
-          <a href="/">
-            <img src="/assets/logo-name.png" alt="sah4m!meter" />
-          </a>
-        </div>
+        <a href="/">
+          <div class="topbar-brand">
+            <img class="logo-dark" src="/assets/logo-name.png" alt="sah4m!meter" />
+            <img class="logo-light" src="/assets/logo-name-blk.png" alt="sah4m!meter" />
+          </div>
+        </a>
         <div></div>
         <div class="topbar-actions">
           <a class="back-link" href="/">Back to Dashboard</a>
