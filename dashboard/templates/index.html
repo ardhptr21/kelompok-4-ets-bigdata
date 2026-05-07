@@ -1452,6 +1452,21 @@
         });
       }
 
+      const API_CACHE_KEY = 'live-api-cache';
+
+      function mergeAndCacheApi(incoming) {
+        let cached = [];
+        try { cached = JSON.parse(localStorage.getItem(API_CACHE_KEY) || '[]'); } catch {}
+        const bySymbol = new Map(cached.map((x) => [x.symbol || x.ticker, x]));
+        for (const item of (incoming || [])) {
+          const key = item.symbol || item.ticker;
+          if (key) bySymbol.set(key, item);
+        }
+        const merged = [...bySymbol.values()];
+        try { localStorage.setItem(API_CACHE_KEY, JSON.stringify(merged)); } catch {}
+        return merged;
+      }
+
       const RSS_CACHE_KEY = 'rss-article-cache';
       const RSS_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -1507,9 +1522,10 @@
           const response = await fetch('/api/data', { cache: 'no-store' });
           const data = await response.json();
           renderSpark(data.spark || {});
-          renderApi(data.live_api || []);
+          const liveApiItems = mergeAndCacheApi(data.live_api || []);
+          renderApi(liveApiItems);
           renderRss(mergeAndCacheRss(data.live_rss || []));
-          const fromLive = [...new Set((data.live_api || []).map((item) => item.symbol || item.ticker).filter(Boolean))];
+          const fromLive = [...new Set(liveApiItems.map((item) => item.symbol || item.ticker).filter(Boolean))];
           availableSymbols = [...new Set([...FALLBACK_SYMBOLS, ...fromLive])];
 
           const now = new Date();
