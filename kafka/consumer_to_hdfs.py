@@ -66,7 +66,6 @@ def build_consumer(topic: str, group_suffix: str) -> KafkaConsumer:
 		value_deserializer=lambda raw: json.loads(raw.decode("utf-8")),
 		key_deserializer=lambda raw: raw.decode("utf-8") if raw else None,
 		group_id=f"{GROUP_ID}-{group_suffix}",
-		consumer_timeout_ms=1000,
 		fetch_max_wait_ms=1000,
 	)
 
