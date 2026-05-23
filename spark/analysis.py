@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -243,55 +244,63 @@ def write_hdfs_results(spark: SparkSession, result: dict) -> None:
 def main() -> None:
     logger.info("Running analysis main()")
     spark = build_spark()
-    api_df = normalize_api(read_json_folder(spark, HDFS_API_PATH, ["api_*.json", "live_api.json"]))
-    rss_df = normalize_rss(read_json_folder(spark, HDFS_RSS_PATH, ["rss_*.json", "live_rss.json"]))
 
     try:
-        api_count = api_df.count() if not api_df.rdd.isEmpty() else 0
-    except Exception:
-        api_count = -1
-    try:
-        rss_count = rss_df.count() if not rss_df.rdd.isEmpty() else 0
-    except Exception:
-        rss_count = -1
-    logger.info("API events: %s rows; RSS events: %s rows", api_count, rss_count)
+        while True:
+            logger.info("Starting analysis iteration...")
+            api_df = normalize_api(read_json_folder(spark, HDFS_API_PATH, ["api_*.json", "live_api.json"]))
+            rss_df = normalize_rss(read_json_folder(spark, HDFS_RSS_PATH, ["rss_*.json", "live_rss.json"]))
 
-    api_df.createOrReplaceTempView("api_events")
-    rss_df.createOrReplaceTempView("rss_events")
+            try:
+                api_count = api_df.count() if not api_df.rdd.isEmpty() else 0
+            except Exception:
+                api_count = -1
+            try:
+                rss_count = rss_df.count() if not rss_df.rdd.isEmpty() else 0
+            except Exception:
+                rss_count = -1
+            logger.info("API events: %s rows; RSS events: %s rows", api_count, rss_count)
 
-    stock_return = compute_stock_return(api_df)
-    intraday_volatility = compute_intraday_volatility(api_df)
-    hourly_summary = compute_hourly_summary_sql(spark) if not api_df.rdd.isEmpty() else []
-    word_trends = compute_news_mentions_sql(spark) if not rss_df.rdd.isEmpty() else []
-    company_mentions = compute_company_mentions(rss_df)
-    top_company = company_mentions[0]["company"] if company_mentions else None
-    top_company_hourly_mentions = compute_company_hourly_mentions(rss_df, top_company) if top_company else []
-    spark_kpis = {
-        "api_events": api_count,
-        "rss_events": rss_count,
-        "top_return_symbol": stock_return[0]["symbol"] if stock_return else None,
-        "top_return_pct": stock_return[0]["return_pct"] if stock_return else None,
-        "top_company": top_company,
-        "top_company_mentions": company_mentions[0]["count"] if company_mentions else 0,
-    }
+            api_df.createOrReplaceTempView("api_events")
+            rss_df.createOrReplaceTempView("rss_events")
 
-    result = {
-        "generated_at": utc_now_iso(),
-        "api_event_count": api_count,
-        "rss_event_count": rss_count,
-        "stock_return": stock_return,
-        "intraday_volatility": intraday_volatility,
-        "hourly_summary": hourly_summary,
-        "word_trends": word_trends,
-        "company_mentions": company_mentions,
-        "top_company_hourly_mentions": top_company_hourly_mentions,
-        "spark_kpis": spark_kpis
-    }
+            stock_return = compute_stock_return(api_df)
+            intraday_volatility = compute_intraday_volatility(api_df)
+            hourly_summary = compute_hourly_summary_sql(spark) if not api_df.rdd.isEmpty() else []
+            word_trends = compute_news_mentions_sql(spark) if not rss_df.rdd.isEmpty() else []
+            company_mentions = compute_company_mentions(rss_df)
+            top_company = company_mentions[0]["company"] if company_mentions else None
+            top_company_hourly_mentions = compute_company_hourly_mentions(rss_df, top_company) if top_company else []
+            spark_kpis = {
+                "api_events": api_count,
+                "rss_events": rss_count,
+                "top_return_symbol": stock_return[0]["symbol"] if stock_return else None,
+                "top_return_pct": stock_return[0]["return_pct"] if stock_return else None,
+                "top_company": top_company,
+                "top_company_mentions": company_mentions[0]["count"] if company_mentions else 0,
+            }
 
-    write_local_results(result)
-    write_hdfs_results(spark, result)
-    logger.info("Analysis completed; results written")
-    spark.stop()
+            result = {
+                "generated_at": utc_now_iso(),
+                "api_event_count": api_count,
+                "rss_event_count": rss_count,
+                "stock_return": stock_return,
+                "intraday_volatility": intraday_volatility,
+                "hourly_summary": hourly_summary,
+                "word_trends": word_trends,
+                "company_mentions": company_mentions,
+                "top_company_hourly_mentions": top_company_hourly_mentions,
+                "spark_kpis": spark_kpis
+            }
+
+            write_local_results(result)
+            write_hdfs_results(spark, result)
+            logger.info("Iteration completed. Sleeping for 5 seconds...")
+            time.sleep(5)
+    except KeyboardInterrupt:
+        logger.info("Loop interrupted by user. Stopping Spark...")
+    finally:
+        spark.stop()
 
 
 if __name__ == "__main__":
