@@ -27,7 +27,7 @@ rss_df = spark.read.option("multiLine", True).json("/data/saham/rss").withColumn
     }
 )
 
-api_df.write.format("delta").mode("overwrite").save("hdfs://localhost:8020/data/saham/lakehouse/bronze/api")
-rss_df.write.format("delta").mode("overwrite").save("hdfs://localhost:8020/data/saham/lakehouse/bronze/rss")
+api_df.write.format("delta").mode("append").save("hdfs://localhost:8020/data/saham/lakehouse/bronze/api")
+rss_df.write.format("delta").mode("append").save("hdfs://localhost:8020/data/saham/lakehouse/bronze/rss")
 
 spark.stop()
