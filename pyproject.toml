@@ -12,4 +12,8 @@ dependencies = [
     "pyspark>=4.1.1",
     "requests>=2.32.4",
     "yfinance>=0.2.65",
+    "delta-spark>=4.2.0",
 ]
+
+[tool.setuptools]
+py-modules = []
