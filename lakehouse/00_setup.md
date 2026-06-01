@@ -75,5 +75,21 @@ Verifikasi data berhasil diproses dengan:
 docker exec hadoop-namenode hdfs dfs -ls -R /data/saham/lakehouse/bronze
 ```
 
+## 1.6 Langkah 5: Menjalankan Silver Layer
+
+Setelah bronze berhasil dibuat, jalankan transformasi silver untuk membersihkan data API dan RSS:
+
+```bash
+python lakehouse/02_silver.py
+```
+
+Verifikasi hasilnya di HDFS dengan:
+
+```bash
+docker exec hadoop-namenode hdfs dfs -ls -R /data/saham/lakehouse/silver
+```
+
+Jika HDFS belum siap, skrip silver akan mencoba menyimpan ke fallback lokal di `lakehouse/lakehouse_data/silver/`.
+
 
 
