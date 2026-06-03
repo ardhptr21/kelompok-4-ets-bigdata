@@ -26,6 +26,7 @@ def build_spark() -> SparkSession:
 		.config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
 		.config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
 		.config("spark.sql.session.timeZone", "UTC")
+		.config("spark.sql.legacy.timeParserPolicy", "LEGACY")
 	)
 	return configure_spark_with_delta_pip(builder).getOrCreate()
 
@@ -142,12 +143,12 @@ def main() -> None:
 		api_after_values = api_step2.count()
 
 		# Step 3: drop duplicates
-		api_step3 = api_step2.dropDuplicates(["symbol", "ticker", "timestamp_ts"])
+		api_step3 = api_step2.dropDuplicates(["symbol", "ticker", "timestamp"])
 		api_after = api_step3.count()
 
 		api_silver = clean_api(api_bronze)
 
-		write_delta_with_fallback(api_step3, SILVER_API_HDFS_PATH, LOCAL_LAKEHOUSE_DIR / "silver" / "api")
+		write_delta_with_fallback(api_silver, SILVER_API_HDFS_PATH, LOCAL_LAKEHOUSE_DIR / "silver" / "api")
 
 		# RSS cleaning with stepwise counts
 		rss_step0 = rss_bronze
@@ -167,12 +168,12 @@ def main() -> None:
 		rss_after_fields = rss_step2.count()
 
 		# Step 3: drop duplicates
-		rss_step3 = rss_step2.dropDuplicates(["item_id", "link", "timestamp_ts"])
+		rss_step3 = rss_step2.dropDuplicates(["item_id", "link", "timestamp"])
 		rss_after = rss_step3.count()
 
 		rss_silver = clean_rss(rss_bronze)
 
-		write_delta_with_fallback(rss_step3, SILVER_RSS_HDFS_PATH, LOCAL_LAKEHOUSE_DIR / "silver" / "rss")
+		write_delta_with_fallback(rss_silver, SILVER_RSS_HDFS_PATH, LOCAL_LAKEHOUSE_DIR / "silver" / "rss")
 
 		# Prepare report
 		reports_dir = LOCAL_LAKEHOUSE_DIR / "reports"
