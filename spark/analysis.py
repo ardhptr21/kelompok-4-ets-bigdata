@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 import re
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 
 from pyspark.sql import DataFrame, SparkSession, Window, functions as F
+from delta import configure_spark_with_delta_pip
 import logging
 
 
@@ -31,6 +33,8 @@ HDFS_RESULT_PATH = f"{HDFS_BASE_PATH}/hasil"
 DEFAULT_FS       = "hdfs://localhost:8020"
 HDFS_USER        = "hadoop"
 os.environ.setdefault("HADOOP_USER_NAME", HDFS_USER)
+os.environ["PYSPARK_PYTHON"] = sys.executable
+os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
 
 STOPWORDS = {"dan", "yang", "di", "ke", "dari", "untuk", "dengan", "pada", "atau", "the", "a", "an"}
 COMPANY_TERMS = {
@@ -53,13 +57,24 @@ def utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def read_delta_with_fallback(spark: SparkSession, hdfs_path: str, local_path: Path) -> DataFrame:
+    try:
+        return spark.read.format("delta").load(hdfs_path)
+    except Exception as exc:
+        logger.warning("Failed to read Delta from %s: %s. Falling back to local: %s", hdfs_path, exc, local_path)
+        return spark.read.format("delta").load(str(local_path))
+
+
 def build_spark() -> SparkSession:
     logger.info("Starting SparkSession with default FS=%s", DEFAULT_FS)
-    return (
+    builder = (
         SparkSession.builder.appName("SahamMeterAnalysis")
         .config("spark.hadoop.fs.defaultFS", DEFAULT_FS)
-        .getOrCreate()
+        .config("spark.hadoop.dfs.client.use.datanode.hostname", "true")
+        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
     )
+    return configure_spark_with_delta_pip(builder).getOrCreate()
 
 
 def read_json_folder(spark: SparkSession, hdfs_path: str, local_patterns: str | list[str]) -> DataFrame:
@@ -86,7 +101,7 @@ def normalize_api(df: DataFrame) -> DataFrame:
     if df.rdd.isEmpty():
         return df
     return (
-        df.withColumn("timestamp_ts", F.to_timestamp("timestamp"))
+        df.withColumn("timesjtamp_ts", F.to_timestamp("timestamp"))
         .withColumn("price_current", F.col("price_current").cast("double"))
         .withColumn("price_open", F.col("price_open").cast("double"))
         .withColumn("price_high", F.col("price_high").cast("double"))
@@ -248,29 +263,119 @@ def main() -> None:
     try:
         while True:
             logger.info("Starting analysis iteration...")
-            api_df = normalize_api(read_json_folder(spark, HDFS_API_PATH, ["api_*.json", "live_api.json"]))
-            rss_df = normalize_rss(read_json_folder(spark, HDFS_RSS_PATH, ["rss_*.json", "live_rss.json"]))
+
+            # Read Silver and Gold Delta tables using fallback mechanism
+            silver_api = read_delta_with_fallback(
+                spark, 
+                f"{DEFAULT_FS}/data/saham/lakehouse/silver/api", 
+                ROOT_DIR / "lakehouse" / "lakehouse_data" / "silver" / "api"
+            )
+            silver_rss = read_delta_with_fallback(
+                spark, 
+                f"{DEFAULT_FS}/data/saham/lakehouse/silver/rss", 
+                ROOT_DIR / "lakehouse" / "lakehouse_data" / "silver" / "rss"
+            )
+            gold_return = read_delta_with_fallback(
+                spark, 
+                f"{DEFAULT_FS}/data/saham/lakehouse/gold/saham_return", 
+                ROOT_DIR / "lakehouse" / "lakehouse_data" / "gold" / "saham_return"
+            )
+            gold_volatility = read_delta_with_fallback(
+                spark, 
+                f"{DEFAULT_FS}/data/saham/lakehouse/gold/saham_volatility", 
+                ROOT_DIR / "lakehouse" / "lakehouse_data" / "gold" / "saham_volatility"
+            )
+            gold_news = read_delta_with_fallback(
+                spark, 
+                f"{DEFAULT_FS}/data/saham/lakehouse/gold/saham_news_mention", 
+                ROOT_DIR / "lakehouse" / "lakehouse_data" / "gold" / "saham_news_mention"
+            )
+            gold_sharpe = read_delta_with_fallback(
+                spark, 
+                f"{DEFAULT_FS}/data/saham/lakehouse/gold/saham_sharpe_proxy", 
+                ROOT_DIR / "lakehouse" / "lakehouse_data" / "gold" / "saham_sharpe_proxy"
+            )
 
             try:
-                api_count = api_df.count() if not api_df.rdd.isEmpty() else 0
+                api_count = silver_api.count() if not silver_api.rdd.isEmpty() else 0
             except Exception:
                 api_count = -1
             try:
-                rss_count = rss_df.count() if not rss_df.rdd.isEmpty() else 0
+                rss_count = silver_rss.count() if not silver_rss.rdd.isEmpty() else 0
             except Exception:
                 rss_count = -1
             logger.info("API events: %s rows; RSS events: %s rows", api_count, rss_count)
 
-            api_df.createOrReplaceTempView("api_events")
-            rss_df.createOrReplaceTempView("rss_events")
+            # Register temporary views for SQL queries
+            silver_api.createOrReplaceTempView("api_events")
+            silver_rss.createOrReplaceTempView("rss_events")
 
-            stock_return = compute_stock_return(api_df)
-            intraday_volatility = compute_intraday_volatility(api_df)
-            hourly_summary = compute_hourly_summary_sql(spark) if not api_df.rdd.isEmpty() else []
-            word_trends = compute_news_mentions_sql(spark) if not rss_df.rdd.isEmpty() else []
-            company_mentions = compute_company_mentions(rss_df)
+            # Map Gold Return to expected format by joining with start & latest prices from Silver
+            stock_return = []
+            if not silver_api.rdd.isEmpty() and not gold_return.rdd.isEmpty():
+                window_asc = Window.partitionBy("symbol").orderBy(F.col("timestamp_ts").asc(), F.col("price_current").asc())
+                window_desc = Window.partitionBy("symbol").orderBy(F.col("timestamp_ts").desc(), F.col("price_current").desc())
+                start_df = silver_api.withColumn("rn", F.row_number().over(window_asc)).filter(F.col("rn") == 1).select("symbol", F.col("price_current").alias("price_start"))
+                latest_df = silver_api.withColumn("rn", F.row_number().over(window_desc)).filter(F.col("rn") == 1).select("symbol", F.col("price_current").alias("price_latest"))
+                prices_df = start_df.join(latest_df, "symbol")
+                
+                stock_return_df = gold_return.join(prices_df, "symbol").select(
+                    "symbol",
+                    "price_start",
+                    "price_latest",
+                    F.col("avg_return").alias("return_pct")
+                ).orderBy(F.col("return_pct").desc_nulls_last())
+                stock_return = [row.asDict() for row in stock_return_df.collect()]
+
+            # Map Gold Volatility to expected format by joining with average price and event count
+            intraday_volatility = []
+            if not silver_api.rdd.isEmpty() and not gold_volatility.rdd.isEmpty():
+                vol_stats = silver_api.groupBy("symbol").agg(
+                    F.avg("price_current").alias("avg_price"),
+                    F.count("*").alias("event_count")
+                )
+                vol_df = gold_volatility.join(vol_stats, "symbol").select(
+                    "symbol",
+                    F.col("price_stddev").alias("volatility_price_std"),
+                    "avg_price",
+                    "event_count"
+                ).orderBy(F.col("volatility_price_std").desc_nulls_last())
+                intraday_volatility = [row.asDict() for row in vol_df.collect()]
+
+            hourly_summary = compute_hourly_summary_sql(spark) if not silver_api.rdd.isEmpty() else []
+            word_trends = compute_news_mentions_sql(spark) if not silver_rss.rdd.isEmpty() else []
+            company_mentions = compute_company_mentions(silver_rss)
             top_company = company_mentions[0]["company"] if company_mentions else None
-            top_company_hourly_mentions = compute_company_hourly_mentions(rss_df, top_company) if top_company else []
+
+            # Get hourly news mentions from Gold news table
+            top_company_hourly_mentions = []
+            if not gold_news.rdd.isEmpty():
+                COMPANY_TO_TICKER = {
+                    "Bank Central Asia": "BBCA.JK",
+                    "Bank Rakyat Indonesia": "BBRI.JK",
+                    "Telkom Indonesia": "TLKM.JK",
+                    "Astra International": "ASII.JK",
+                    "Bank Mandiri": "BMRI.JK",
+                }
+                top_ticker = COMPANY_TO_TICKER.get(top_company)
+                if top_ticker:
+                    top_company_hourly = gold_news.filter(F.col("ticker") == top_ticker).select(
+                        F.col("jam").alias("hour"),
+                        F.col("mention_count").alias("count")
+                    ).orderBy("hour")
+                    top_company_hourly_mentions = [row.asDict() for row in top_company_hourly.collect()]
+
+                if not top_company_hourly_mentions and top_company:
+                    # Fallback to the ticker with highest overall mentions
+                    top_ticker_row = gold_news.groupBy("ticker").agg(F.sum("mention_count").alias("total_mentions")).orderBy(F.col("total_mentions").desc()).first()
+                    if top_ticker_row:
+                        top_ticker = top_ticker_row["ticker"]
+                        top_company_hourly = gold_news.filter(F.col("ticker") == top_ticker).select(
+                            F.col("jam").alias("hour"),
+                            F.col("mention_count").alias("count")
+                        ).orderBy("hour")
+                        top_company_hourly_mentions = [row.asDict() for row in top_company_hourly.collect()]
+
             spark_kpis = {
                 "api_events": api_count,
                 "rss_events": rss_count,
@@ -279,6 +384,9 @@ def main() -> None:
                 "top_company": top_company,
                 "top_company_mentions": company_mentions[0]["count"] if company_mentions else 0,
             }
+
+            saham_sharpe_proxy = [row.asDict() for row in gold_sharpe.collect()] if not gold_sharpe.rdd.isEmpty() else []
+            saham_news_mention_full = [row.asDict() for row in gold_news.collect()] if not gold_news.rdd.isEmpty() else []
 
             result = {
                 "generated_at": utc_now_iso(),
@@ -290,7 +398,9 @@ def main() -> None:
                 "word_trends": word_trends,
                 "company_mentions": company_mentions,
                 "top_company_hourly_mentions": top_company_hourly_mentions,
-                "spark_kpis": spark_kpis
+                "spark_kpis": spark_kpis,
+                "saham_sharpe_proxy": saham_sharpe_proxy,
+                "saham_news_mention": saham_news_mention_full
             }
 
             write_local_results(result)

@@ -1,0 +1,13 @@
+{
+  "stage": "rss",
+  "bronze_count": 203,
+  "after_timestamp": 203,
+  "after_required_fields": 203,
+  "after_dedup": 103,
+  "lost_timestamp": 0,
+  "lost_missing_fields": 0,
+  "lost_duplicates": 100,
+  "lost_timestamp_pct": 0.0,
+  "lost_missing_fields_pct": 0.0,
+  "lost_duplicates_pct": 49.26
+}

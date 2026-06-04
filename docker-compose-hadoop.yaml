@@ -20,7 +20,8 @@ services:
     container_name: hadoop-datanode
     ports:
       - "9864:9864"   # Web UI
-      - "50010:50010" # Data transfer
+      - "9866:9866"   # Data transfer (Hadoop 3 default)
+      - "50010:50010" # Data transfer (Hadoop 2 fallback)
     depends_on:
       namenode:
         condition: service_started

@@ -1052,6 +1052,14 @@
               <span id="pulse-value" class="mono">0.00%</span>
             </div>
           </div>
+          <div class="chart-box">
+            <div class="item-title">Sharpe Ratio Proxy (Risk-Adjusted Return)</div>
+            <canvas id="sharpe-chart"></canvas>
+          </div>
+          <div class="chart-box">
+            <div class="item-title">Korelasi Berita vs Return per Jam</div>
+            <canvas id="news-mention-chart"></canvas>
+          </div>
         </div>
       </section>
 
@@ -1107,6 +1115,10 @@
       let volumeChart = null;
       let companyChart = null;
       let pulseChart = null;
+      const sharpeChartCanvas = document.getElementById('sharpe-chart');
+      const newsMentionChartCanvas = document.getElementById('news-mention-chart');
+      let sharpeChart = null;
+      let newsMentionChart = null;
       const PULSE_KEY = 'market-pulse-series';
       function loadPulseSeries() {
         try {
@@ -1135,6 +1147,8 @@
           hourlyChart?.resize();
           volumeChart?.resize();
           companyChart?.resize();
+          sharpeChart?.resize();
+          newsMentionChart?.resize();
         }, 0);
         if (tabId === 'api-tab' || tabId === 'rss-tab') {
           const hero = document.querySelector('.hero');
@@ -1268,6 +1282,8 @@
         updateCharts(data.stock_return || [], data.hourly_summary || []);
         updateVolumeChart(data.api_event_count || 0, data.rss_event_count || 0);
         updateCompanyChart(data.top_company_hourly_mentions || [], data.spark_kpis || {});
+        updateSharpeChart(data.saham_sharpe_proxy || []);
+        updateNewsMentionChart(data.saham_news_mention || []);
       }
 
       function renderKpis(data) {
@@ -1485,6 +1501,148 @@
               y: {
                 ticks: { color: '#98a5c1' },
                 grid: { color: 'rgba(255,255,255,0.06)' },
+              },
+            },
+          },
+        });
+      }
+
+      function updateSharpeChart(sharpeData) {
+        if (typeof Chart === 'undefined') return;
+        const sorted = [...sharpeData].sort((a, b) => (Number(b.sharpe_proxy) || 0) - (Number(a.sharpe_proxy) || 0));
+        const labels = sorted.map(r => (r.ticker || r.symbol || '-').replace('.JK', ''));
+        const sharpeValues = sorted.map(r => Number(r.sharpe_proxy) || 0);
+        const returnValues = sorted.map(r => Number(r.avg_return) || 0);
+        const riskValues = sorted.map(r => Number(r.risk) || 0);
+
+        const sharpeBg = sharpeValues.map(v => v >= 0 ? 'rgba(70, 214, 196, 0.7)' : 'rgba(255, 107, 107, 0.7)');
+        const sharpeBorder = sharpeValues.map(v => v >= 0 ? 'rgba(70, 214, 196, 1)' : 'rgba(255, 107, 107, 1)');
+
+        if (sharpeChart) sharpeChart.destroy();
+        sharpeChart = new Chart(sharpeChartCanvas, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Sharpe Proxy',
+                data: sharpeValues,
+                backgroundColor: sharpeBg,
+                borderColor: sharpeBorder,
+                borderWidth: 1,
+                order: 1,
+              },
+              {
+                label: 'Avg Return',
+                data: returnValues,
+                type: 'line',
+                borderColor: 'rgba(96, 126, 255, 1)',
+                backgroundColor: 'rgba(96, 126, 255, 0.15)',
+                tension: 0.3,
+                pointRadius: 3,
+                fill: false,
+                order: 0,
+                yAxisID: 'y',
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { labels: { color: '#e9eefb' } },
+              tooltip: {
+                callbacks: {
+                  afterBody: function(context) {
+                    const idx = context[0].dataIndex;
+                    return `Risk (stddev): ${riskValues[idx]?.toFixed(4) ?? '-'}`;
+                  }
+                }
+              },
+            },
+            scales: {
+              x: { ticks: { color: '#98a5c1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+              y: { ticks: { color: '#98a5c1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+            },
+          },
+        });
+      }
+
+      function updateNewsMentionChart(newsData) {
+        if (typeof Chart === 'undefined') return;
+
+        // Group by ticker, aggregate hours
+        const tickerMap = new Map();
+        for (const row of newsData) {
+          const t = (row.ticker || '-').replace('.JK', '');
+          if (!tickerMap.has(t)) tickerMap.set(t, { totalMentions: 0, totalReturn: 0, hours: 0 });
+          const entry = tickerMap.get(t);
+          entry.totalMentions += Number(row.mention_count) || 0;
+          entry.totalReturn += Number(row.hourly_avg_return) || 0;
+          entry.hours += 1;
+        }
+
+        const aggregated = [...tickerMap.entries()]
+          .map(([ticker, d]) => ({
+            ticker,
+            mentions: d.totalMentions,
+            avgReturn: d.hours > 0 ? d.totalReturn / d.hours : 0,
+          }))
+          .sort((a, b) => b.mentions - a.mentions)
+          .slice(0, 12);
+
+        const labels = aggregated.map(r => r.ticker);
+        const mentions = aggregated.map(r => r.mentions);
+        const returns = aggregated.map(r => r.avgReturn);
+
+        if (newsMentionChart) newsMentionChart.destroy();
+        newsMentionChart = new Chart(newsMentionChartCanvas, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Mention Count',
+                data: mentions,
+                backgroundColor: 'rgba(247, 194, 124, 0.7)',
+                borderColor: 'rgba(247, 194, 124, 1)',
+                borderWidth: 1,
+                yAxisID: 'y',
+                order: 1,
+              },
+              {
+                label: 'Avg Hourly Return (%)',
+                data: returns,
+                type: 'line',
+                borderColor: 'rgba(89, 224, 177, 1)',
+                backgroundColor: 'rgba(89, 224, 177, 0.15)',
+                tension: 0.3,
+                pointRadius: 4,
+                fill: false,
+                yAxisID: 'y1',
+                order: 0,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { labels: { color: '#e9eefb' } },
+            },
+            scales: {
+              x: { ticks: { color: '#98a5c1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+              y: {
+                position: 'left',
+                title: { display: true, text: 'Mentions', color: '#98a5c1' },
+                ticks: { color: '#98a5c1' },
+                grid: { color: 'rgba(255,255,255,0.06)' },
+              },
+              y1: {
+                position: 'right',
+                title: { display: true, text: 'Return %', color: '#98a5c1' },
+                ticks: { color: '#98a5c1' },
+                grid: { drawOnChartArea: false },
               },
             },
           },

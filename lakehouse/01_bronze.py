@@ -19,6 +19,7 @@ def build_spark() -> SparkSession:
     builder = (
         SparkSession.builder.appName("Bronze-SahamMeter")
         .config("spark.hadoop.fs.defaultFS", DEFAULT_FS)
+        .config("spark.hadoop.dfs.client.use.datanode.hostname", "true")
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
         .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
     )

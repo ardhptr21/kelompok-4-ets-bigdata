@@ -1,0 +1,7 @@
+README.md
+pyproject.toml
+kelompok_4_ets_bigdata.egg-info/PKG-INFO
+kelompok_4_ets_bigdata.egg-info/SOURCES.txt
+kelompok_4_ets_bigdata.egg-info/dependency_links.txt
+kelompok_4_ets_bigdata.egg-info/requires.txt
+kelompok_4_ets_bigdata.egg-info/top_level.txt

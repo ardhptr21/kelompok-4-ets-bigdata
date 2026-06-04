@@ -1,0 +1,15 @@
+Metadata-Version: 2.4
+Name: kelompok-4-ets-bigdata
+Version: 0.1.0
+Requires-Python: >=3.13
+Requires-Dist: flask>=3.1.3
+Requires-Dist: ipykernel>=7.2.0
+Requires-Dist: kafka-python>=2.3.1
+Requires-Dist: feedparser>=6.0.11
+Requires-Dist: hdfs>=2.7.3
+Requires-Dist: pandas>=2.2.3
+Requires-Dist: pyspark>=4.1.1
+Requires-Dist: requests>=2.32.4
+Requires-Dist: yfinance>=0.2.65
+Requires-Dist: delta-spark>=4.2.0
+Requires-Dist: deltalake>=0.20.0

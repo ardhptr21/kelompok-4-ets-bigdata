@@ -1,0 +1,13 @@
+{
+  "stage": "api",
+  "bronze_count": 555,
+  "after_timestamp": 555,
+  "after_values": 555,
+  "after_dedup": 505,
+  "lost_timestamp": 0,
+  "lost_invalid_values": 0,
+  "lost_duplicates": 50,
+  "lost_timestamp_pct": 0.0,
+  "lost_invalid_values_pct": 0.0,
+  "lost_duplicates_pct": 9.01
+}
